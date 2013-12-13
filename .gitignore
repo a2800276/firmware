@@ -1,0 +1,14 @@
+.DS_Store
+JLink.log
+*.o
+*.dep
+*.bin
+*.hex
+*.obj
+*.swp
+a.out
+*.swo
+*.gch
+tags
+*.s
+*.d

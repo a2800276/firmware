@@ -1,0 +1,7 @@
+device lpc1833
+r
+loadbin firmware.bin, 0x1a000000
+r
+g
+exit
+
