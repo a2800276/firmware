@@ -12,7 +12,6 @@ LDFLAGS  = '-Tlpc1833.ld' -nostartfiles -nostdlib -nodefaultlibs
 OCFLAGS  = -Obinary --strip-unneeded
 
 JLINK = jLinkExe
-JLINKGDBSERVER = JLinkGDBServer
 FLASH_START_ADDRESS = 0x1a000000
 
 
@@ -44,7 +43,7 @@ $(NAME).obj: $(OBJS)
 -include $(DEPENDS)
 
 ## Program device
-flash: rm-flash.jlink flash.jlink stopdebug
+flash: rm-flash.jlink flash.jlink $(NAME).bin
 	$(JLINK) flash.jlink
 
 rm-flash.jlink:
@@ -53,11 +52,7 @@ rm-flash.jlink:
 flash.jlink:
 	echo "device lpc1833\nr\nloadbin $(NAME).bin, $(FLASH_START_ADDRESS)\nr\ng\nexit\n" > flash.jlink
 
-stopdebug:
-	-killall $(JLINKGDBSERVER)
-
-
 # clean all generated files
 .PHONY: clean
 clean:
-	-rm $(NAME).bin $(NAME).hex $(NAME).obj $(OBJS) $(DEPENDS)
+	-rm $(NAME).bin $(NAME).hex $(NAME).obj $(OBJS) $(DEPENDS) flash.jlink 2>/dev/null

@@ -1,0 +1,6 @@
+#ifndef _PLATFORM_SETTINGS_
+#define _PLATFORM_SETTINGS_
+
+#define MAIN_CLOCK_MHZ 180
+
+#endif

@@ -1,9 +1,11 @@
-#ifndef _ANYKEY_
-#define _ANYKEY_
+#ifndef _EVERYKEY_
+#define _EVERYKEY_
 
+#include "platformsettings.h"
 #include "types.h"
 #include "endian.h"
 #include "vectortable.h"
+#include "scu.h"
 #include "gpio.h"
 #include "utils.h"
 
