@@ -1,6 +1,8 @@
 #ifndef _PLATFORM_SETTINGS_
 #define _PLATFORM_SETTINGS_
 
+#define XTAL_MHZ 12
+#define XTAL_IS_CRYSTAL 1
 #define MAIN_CLOCK_MHZ 180
 
 #endif

@@ -14,6 +14,10 @@ void disableInterrupts();
 /** re-enable interrupts */
 void enableInterrupts();
 
+/** simple busy wait
+@param count delay to wait. Timing is compiler-dependent, at least 3 clock cycles per count */
+void delay(uint32_t count);
+
 #endif
 
 

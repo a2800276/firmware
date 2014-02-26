@@ -55,4 +55,4 @@ flash.jlink:
 # clean all generated files
 .PHONY: clean
 clean:
-	-rm $(NAME).bin $(NAME).hex $(NAME).obj $(OBJS) $(DEPENDS) flash.jlink 2>/dev/null
+	-rm $(NAME).bin $(NAME).hex $(NAME).obj $(OBJS) $(DEPENDS) flash.jlink 2>/dev/null || true

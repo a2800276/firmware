@@ -1,7 +1,6 @@
-#include "everykey.h"
-
-void bootstrap(void);	//bootstrap that will call main later
-void deadend(void);	//neverending handler
+#include "startup.h"
+#include "types.h"
+#include "vectortable.h"
 
 /* These variables are used to pass memory locations from the linker script to our code. */
 extern uint8_t _LD_STACK_TOP;
@@ -10,110 +9,90 @@ extern uint8_t _LD_START_OF_DATA;
 extern uint8_t _LD_END_OF_DATA;
 extern uint8_t _LD_END_OF_BSS;
 
-/* we define some standard handler names here - they all default to deadend but may be changed by implementing a real function with that name. So if they are triggered but undefined, we'll just stop. DEFAULT_IMP defines a weak alias. */
-
-#define DEFAULTS_TO(func) __attribute__ ((weak, alias (#func)))
-
-void main(void);// DEFAULTS_TO(deadend);
-void systick(void) DEFAULTS_TO(deadend);
-void usb_fiq_handler(void) DEFAULTS_TO(deadend);
-void usb_irq_handler(void) DEFAULTS_TO(deadend);
-void ct16b0_handler(void) DEFAULTS_TO(deadend);
-void ct16b1_handler(void) DEFAULTS_TO(deadend);
-void ct32b0_handler(void) DEFAULTS_TO(deadend);
-void ct32b1_handler(void) DEFAULTS_TO(deadend);
-void gpio0_handler(void) DEFAULTS_TO(deadend);
-void gpio1_handler(void) DEFAULTS_TO(deadend);
-void gpio2_handler(void) DEFAULTS_TO(deadend);
-void gpio3_handler(void) DEFAULTS_TO(deadend);
-void i2c_handler(void) DEFAULTS_TO(deadend);
-void uart_handler(void) DEFAULTS_TO(deadend);
 /* The vector table - contains the initial stack pointer and
  pointers to boot code as well as interrupt and fault handler pointers.
  The processor will expect this to be located at address 0x0, so
  we put it into a separate linker section. */
 __attribute__ ((section(".vectors")))
 
-
-
 const VECTOR_TABLE vtable = {
+	//Common for all Cortex M3/M4 MCUs
 	&_LD_STACK_TOP,          //Stack top
 	bootstrap,               //boot code
-	deadend,                 //NMI
-	deadend,                 //Hard fault
-	deadend,                 //Memory protection unit fault handler
-	deadend,                 //Bus fault handler
-	deadend,                 //Usage fault handler
-	deadend,                 //RESERVED1
-	deadend,                 //RESERVED2
-	deadend,                 //Reserved for CRC checksum
-	deadend,                 //RESERVED4
-	deadend,                 //SVCall handler
-	deadend,                 //Debug monitor handler
-	deadend,                 //RESERVED5
-	deadend,                 //PendSV handler
+	nmi_handler,             //NMI
+	hardfault_handler,       //Hard fault
+	mpufault_handler,        //Memory protection unit fault handler
+	busfault_handler,        //Bus fault handler
+	usagefault_handler,      //Usage fault handler
+	deadend,                 //Unused / reserved
+	deadend,                 //Unused / reserved
+	deadend,                 //Unused / reserved (used for CRC checksum)
+	deadend,                 //Unused / reserved
+	svcall_handler,          //SVCall handler
+	debugmonitor_handler,    //Debug monitor handler
+	deadend,                 //Unused / reserved
+	pendsv_handler,          //PendSV handler
 	systick,                 //The SysTick handler
-	deadend,                 //PIO0_0  Wakeup
-	deadend,                 //PIO0_1  Wakeup
-	deadend,                 //PIO0_2  Wakeup
-	deadend,                 //PIO0_3  Wakeup
-	deadend,                 //PIO0_4  Wakeup
-	deadend,                 //PIO0_5  Wakeup
-	deadend,                 //PIO0_6  Wakeup
-	deadend,                 //PIO0_7  Wakeup
-	deadend,                 //PIO0_8  Wakeup
-	deadend,                 //PIO0_9  Wakeup
-	deadend,                 //PIO0_10  Wakeup
-	deadend,                 //PIO0_11  Wakeup
-	deadend,                 //PIO1_0  Wakeup
-	deadend,                 //PIO1_1  Wakeup
-	deadend,                 //PIO1_2  Wakeup
-	deadend,                 //PIO1_3  Wakeup
-	deadend,                 //PIO1_4  Wakeup
-	deadend,                 //PIO1_5  Wakeup
-	deadend,                 //PIO1_6  Wakeup
-	deadend,                 //PIO1_7  Wakeup
-	deadend,                 //PIO1_8  Wakeup
-	deadend,                 //PIO1_9  Wakeup
-	deadend,                 //PIO1_10  Wakeup
-	deadend,                 //PIO1_11  Wakeup
-	deadend,                 //PIO2_0  Wakeup
-	deadend,                 //PIO2_1  Wakeup
-	deadend,                 //PIO2_2  Wakeup
-	deadend,                 //PIO2_3  Wakeup
-	deadend,                 //PIO2_4  Wakeup
-	deadend,                 //PIO2_5  Wakeup
-	deadend,                 //PIO2_6  Wakeup
-	deadend,                 //PIO2_7  Wakeup
-	deadend,                 //PIO2_8  Wakeup
-	deadend,                 //PIO2_9  Wakeup
-	deadend,                 //PIO2_10  Wakeup
-	deadend,                 //PIO2_11  Wakeup
-	deadend,                 //PIO3_0  Wakeup
-	deadend,                 //PIO3_1  Wakeup
-	deadend,                 //PIO3_2  Wakeup
-	deadend,                 //PIO3_3  Wakeup
-	i2c_handler,             //I2C
-	ct16b0_handler,          //16-bit Timer 0 handler
-	ct16b1_handler,          //16-bit Timer 1 handler
-	ct32b0_handler,          //32-bit Timer 0 handler
-	ct32b1_handler,          //32-bit Timer 1 handler
-	deadend,                 //SSP
-	uart_handler,            //UART
-	usb_irq_handler,         //USB IRQ
-	usb_fiq_handler,         //USB FIQ
-	deadend,                 //ADC
-	deadend,                 //WDT
-	deadend,                 //BOD
-	deadend,                 //Flash
-	gpio3_handler,           //PIO INT3
-	gpio2_handler,           //PIO INT2
-	gpio1_handler,           //PIO INT1
-	gpio0_handler            //PIO INT0
+
+	//MCU-specific from here
+	dac_handler,             //DAC converter
+	mapp_handler,            //Communication to Cortex M0 (LPC43xx only)
+	dma_handler,             //DMA
+	deadend,                 //Unused / reserved
+	flash_eeprom_handler,    //Flash and EEPROM
+	ethernet_handler,        //Ethernet
+	sdio_handler,            //SDIO
+	lcd_handler,             //LCD
+	usb0_handler,            //USB 0
+	usb1_handler,            //USB 1
+	sct_handler,             //SCT (state configurable timer) combined interrupt
+	ritimer_handler,         //RITIMER
+	timer0_handler,          //Timer 0
+	timer1_handler,          //Timer 1
+	timer2_handler,          //Timer 2
+	timer3_handler,          //Timer 3
+	mcpwm_handler,           //Motor control PWM
+	adc0_handler,            //ADC 0
+	i2c0_handler,            //I2C 0
+	i2c1_handler,            //I2C 1
+	spi_handler,             //SPI (LPC43xx only, don't confuse with ssp0/ssp1)
+	adc1_handler,            //ADC 1
+	ssp0_handler,            //SSP 0
+	ssp1_handler,            //SSP 1
+	usart0_handler,          //USART 0
+	uart1_handler,           //UART 1 (and modem)
+	usart2_handler,          //USART 2
+	usart3_handler,          //USART 3 (and IrDA)
+	i2s0_handler,            //I2S 0
+	i2s1_handler,            //I2S 1
+	spifi_handler,           //SPIFI (LPC43xx only)
+	sgpio_handler,           //SGPIO (LPC43xx only)
+	gpio0_handler,           //GPIO 0 (PIN_INT0)
+	gpio1_handler,           //GPIO 1 (PIN_INT1)
+	gpio2_handler,           //GPIO 2 (PIN_INT2)
+	gpio3_handler,           //GPIO 3 (PIN_INT3)
+	gpio4_handler,           //GPIO 4 (PIN_INT4)
+	gpio5_handler,           //GPIO 5 (PIN_INT5)
+	gpio6_handler,           //GPIO 6 (PIN_INT6)
+	gpio7_handler,           //GPIO 7 (PIN_INT7)
+	gpiog0_handler,          //GPIO global interrupt 0
+	gpiog1_handler,          //GPIO global interrupt 1
+	event_router_handler,    //Event router combined interrupt
+	can1_handler,            //CAN 1
+	deadend,                 //Unused / reserved
+	adchs_handler,           //ADCHS (LPC43xx only)
+	atimer_handler,          //Alarm timer
+	rtc_handler,             //RTX
+	deadend,                 //Unused / reserved
+	wwdt_handler,            //WWDT
+	m0sub_handler,           //TXEV from Cortex M0 (Lpc43xx only)
+	can0_handler,            //CAN 0
+	qei_handler              //Quadrature encoder
 };
 
 void bootstrap(void) {
-
+	earlysetup();
+	
 	//Set STKALIGN in NVIC. Not stritly necessary, but good to do. TODO: Make more readable (i.e. memorymap.h definitions)
 #define NVIC_CCR ((volatile unsigned long *)(0xE000ED14))
 //	*NVIC_CCR = *NVIC_CCR | 0x200;
@@ -139,10 +118,5 @@ void bootstrap(void) {
 	while (true) {
 		waitForInterrupt();
 	}
-}
-
-/* default handler for unimplemented interrupts or faults. Stay here for debugger to pick up (once we have a debugger) */
-void deadend(void) {
-	while(1);
 }
 
