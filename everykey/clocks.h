@@ -442,9 +442,5 @@ bool clock_get_auto(CCU_BRANCH_CLOCK clock);
 @return true if it is running, false otherwise */
 bool clock_get_wakeup(CCU_BRANCH_CLOCK clock);
 
-/** initializes the main clocks of the board to the default setting:
-Full speed, external clock if available (according to platformsettings.h) */
-void clock_init_default();
-
 #endif
 

@@ -1,4 +1,3 @@
-#include "platformsettings.h"
 #include "systick.h"
 
 void systick_start(uint32_t clocks) {

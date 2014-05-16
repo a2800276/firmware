@@ -1,6 +1,7 @@
 #include "ssp.h"
 #include "clocks.h"
 #include "progfault.h"
+#include "startup.h"
 
 bool ssp_writebuf_empty(SSP_STRUCT* hw);
 bool ssp_writebuf_full(SSP_STRUCT* hw);

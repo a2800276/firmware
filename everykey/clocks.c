@@ -1,6 +1,6 @@
 #include "clocks.h"
 #include "utils.h"
-#include "platformsettings.h"
+#include "board.h"
 
 void clock_enable_xtal(bool enable) {
 
@@ -134,7 +134,4 @@ bool clock_get_wakeup(CCU_BRANCH_CLOCK clock) {
 	return ((((HW_RO*)CCU1_HW)[2*clock+65]) & CCU_WAKEUP) ? true : false;
 }
 
-void clock_init_default() {
-	clock_set_xtal_core_freq(MAIN_CLOCK_MHZ/XTAL_MHZ, 1);
-}
 

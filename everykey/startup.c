@@ -24,13 +24,13 @@ const VECTOR_TABLE vtable = {
 	mpufault_handler,        //Memory protection unit fault handler
 	busfault_handler,        //Bus fault handler
 	usagefault_handler,      //Usage fault handler
-	deadend,                 //Unused / reserved
-	deadend,                 //Unused / reserved
-	deadend,                 //Unused / reserved (used for CRC checksum)
-	deadend,                 //Unused / reserved
+	invalid_interrupt_handler,                 //Unused / reserved
+	invalid_interrupt_handler,                 //Unused / reserved
+	invalid_interrupt_handler,                 //Unused / reserved
+	invalid_interrupt_handler,                 //Unused / reserved
 	svcall_handler,          //SVCall handler
 	debugmonitor_handler,    //Debug monitor handler
-	deadend,                 //Unused / reserved
+	invalid_interrupt_handler,                 //Unused / reserved
 	pendsv_handler,          //PendSV handler
 	systick,                 //The SysTick handler
 
@@ -38,7 +38,7 @@ const VECTOR_TABLE vtable = {
 	dac_handler,             //DAC converter
 	mapp_handler,            //Communication to Cortex M0 (LPC43xx only)
 	dma_handler,             //DMA
-	deadend,                 //Unused / reserved
+	invalid_interrupt_handler,                 //Unused / reserved
 	flash_eeprom_handler,    //Flash and EEPROM
 	ethernet_handler,        //Ethernet
 	sdio_handler,            //SDIO
@@ -79,11 +79,11 @@ const VECTOR_TABLE vtable = {
 	gpiog1_handler,          //GPIO global interrupt 1
 	event_router_handler,    //Event router combined interrupt
 	can1_handler,            //CAN 1
-	deadend,                 //Unused / reserved
+	invalid_interrupt_handler,                 //Unused / reserved
 	adchs_handler,           //ADCHS (LPC43xx only)
 	atimer_handler,          //Alarm timer
 	rtc_handler,             //RTX
-	deadend,                 //Unused / reserved
+	invalid_interrupt_handler,                 //Unused / reserved
 	wwdt_handler,            //WWDT
 	m0sub_handler,           //TXEV from Cortex M0 (Lpc43xx only)
 	can0_handler,            //CAN 0
@@ -93,7 +93,7 @@ const VECTOR_TABLE vtable = {
 void bootstrap(void) {
 	earlysetup();
 	
-	//Set STKALIGN in NVIC. Not stritly necessary, but good to do. TODO: Make more readable (i.e. memorymap.h definitions)
+	//Set STKALIGN in NVIC. Not stritly necessary, but good to do. TODO: Make more readable, place definition at a proper place
 #define NVIC_CCR ((volatile unsigned long *)(0xE000ED14))
 //	*NVIC_CCR = *NVIC_CCR | 0x200;
 
