@@ -1,1 +1,0 @@
-everykey/lpc1833.ld
