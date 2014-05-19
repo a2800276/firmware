@@ -15,6 +15,7 @@ typedef enum {
 	I2C_STATUS_ARBITRATION_LOST,
 	I2C_STATUS_TIMEOUT,
 	I2C_STATUS_INTERNAL_ERROR,	//Something weird happened
+	I2C_STATUS_INVALID			//This code is never returned, can be used for internal signalling
 } I2C_STATUS;
 
 /** User-supplied callback when a I2C transaction finished.
@@ -98,11 +99,19 @@ typedef enum {
 
 /** Turns on I2C as master in a specific speed mode. Does all setup.
 This function assumes that the respective peripheral clock is running at full main speed.
-Note that I2C1 can only be used in fast mode
+Note that I2C1 can only be used in fast mode.
+I2C0 pins are dedicated, so they can be initialized automatically.
+I2C1 IO pins are NOT initialized automatically, needs to be done manually (see i2c_configure_pin)
  @param i2c I2C engine (0 or 1)
  @param mode operation speed 
  @param state pointer to an uninitialized I2C_State structure in RAM. Must not be null. */
 void i2c_init(uint8_t i2c, I2C_MODE mode);
+
+/** configures a pin to use with I2C1. Should be called prior to use for SDA and SCL pin
+@param group pin group, e.g. 2 of P2_3
+@param idx pin idx, e.g. 3 of P2_3
+@param mode I2C mode of pin (see UM10430, SCU), e.g. 1 for P2_3 */
+void i2c_configure_pin(uint8_t group, uint8_t idx, uint8_t mode);
 
 //TODO: Function to turn peripheral off
 
@@ -114,7 +123,7 @@ void i2c_init(uint8_t i2c, I2C_MODE mode);
  @param handler function to call after completion of transaction
  @param refcon user value that will be passed on to completion handler
  @return status of transmission initiation (does not indicate success of transaction) */
-I2C_STATUS i2C_write(uint8_t i2c,
+I2C_STATUS i2c_write(uint8_t i2c,
                      uint8_t addr,
                      uint16_t len,
                      uint8_t* buf,
@@ -165,5 +174,19 @@ bool i2c_transaction_running(uint8_t i2c);
  @param i2c I2C engine (0 or 1) */
 void i2c_cancel_transaction(uint8_t i2c);
 
+
+// Convenience synchronous API - blocks until transfer is done. Usually easier to use but may be inefficient
+
+/** tries to write to I2C, blocks until transaction failure or completion. May only be used in main thread
+or in an interrupt with lower priority than the I2C interrupts.
+ @param i2c I2C engine (0 or 1)
+ @param addr slave address
+ @param len number of bytes to write
+ @param buf data to write. Must be valid during transaction
+ @return result of transaction */
+I2C_STATUS i2c_write_sync(uint8_t i2c,
+                          uint8_t addr,
+                          uint16_t len,
+                          uint8_t* buf);
 
 #endif

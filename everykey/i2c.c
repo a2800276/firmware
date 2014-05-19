@@ -134,7 +134,7 @@ void i2c_init(uint8_t i2c, I2C_MODE mode) {
 			progfault(ILLEGAL_ARGUMENT);
 	}
 
-	i2c_state[i2c].running = 0;
+	i2c_state[i2c].running = false;
 	i2c_state[i2c].refcon = 0;
 	i2c_state[i2c].slaveAddress = 0;
 	i2c_state[i2c].toWrite = 0;
@@ -146,19 +146,6 @@ void i2c_init(uint8_t i2c, I2C_MODE mode) {
 	//configure pins
 	if (i2c == 0) {
 		scu_set_i2c0_pinmode(true, mode == I2C_MODE_FASTPLUS, true, false);
-	} else {
-		scu_set_pin_mode(I2C1_SDA_PIN_GROUP, I2C1_SDA_PIN_IDX, I2C1_SDA_PIN_MODE);
-		scu_set_pin_pullup(I2C1_SDA_PIN_GROUP, I2C1_SDA_PIN_IDX, true);
-		scu_set_pin_pulldown(I2C1_SDA_PIN_GROUP, I2C1_SDA_PIN_IDX, false);
-		scu_enable_pin_in_buffer(I2C1_SDA_PIN_GROUP, I2C1_SDA_PIN_IDX, true);
-		scu_enable_pin_glitch_filter(I2C1_SDA_PIN_GROUP, I2C1_SDA_PIN_IDX, true);
-		scu_set_pin_drive_strength(I2C1_SDA_PIN_GROUP, I2C1_SDA_PIN_IDX, 3);
-		scu_set_pin_mode(I2C1_SCL_PIN_GROUP, I2C1_SCL_PIN_IDX, I2C1_SCL_PIN_MODE);
-		scu_set_pin_pullup(I2C1_SCL_PIN_GROUP, I2C1_SCL_PIN_IDX, true);
-		scu_set_pin_pulldown(I2C1_SCL_PIN_GROUP, I2C1_SCL_PIN_IDX, false);
-		scu_enable_pin_in_buffer(I2C1_SCL_PIN_GROUP, I2C1_SCL_PIN_IDX, true);
-		scu_enable_pin_glitch_filter(I2C1_SCL_PIN_GROUP, I2C1_SCL_PIN_IDX, true);
-		scu_set_pin_drive_strength(I2C1_SCL_PIN_GROUP, I2C1_SCL_PIN_IDX, 3);
 	}
 	
 	// Turn clock for peripheral
@@ -180,6 +167,17 @@ void i2c_init(uint8_t i2c, I2C_MODE mode) {
 	//turn on I2C engine
 	I2C[i2c].CONSET = I2C_CONSET_I2EN; 
 
+	//we're done
+	i2c_state[i2c].running = true;
+}
+
+void i2c_configure_pin(uint8_t group, uint8_t idx, uint8_t mode) {
+	scu_set_pin_mode(group, idx, mode);
+	scu_set_pin_pullup(group, idx, true);
+	scu_set_pin_pulldown(group, idx, false);
+	scu_enable_pin_in_buffer(group, idx, true);
+	scu_enable_pin_glitch_filter(group, idx, true);
+	scu_set_pin_drive_strength(group, idx, 3);
 }
 
 I2C_STATUS i2c_write(uint8_t i2c,
@@ -233,3 +231,22 @@ void i2c_cancel_transaction(uint8_t i2c) {
 	I2C[i2c].CONSET = I2C_CONSET_STO; //send stop condition (which will hopefully stop everything)
 }
 
+// Synchronous API
+
+volatile static I2C_STATUS i2c_sync_status;
+
+void i2c_sync_completion_handler(uint8_t i2c, uint32_t refcon, I2C_STATUS status) {
+	i2c_sync_status = status;
+}
+
+I2C_STATUS i2c_write_sync(uint8_t i2c,
+                          uint8_t addr,
+                          uint16_t len,
+                          uint8_t* buf) {
+	i2c_sync_status = I2C_STATUS_INVALID;
+	I2C_STATUS init_status = i2c_write(i2c, addr, len, buf, i2c_sync_completion_handler, 0);
+	if (init_status != I2C_STATUS_OK) return init_status;
+	while (i2c_sync_status == I2C_STATUS_INVALID) {};
+	return i2c_sync_status;
+}
+                          

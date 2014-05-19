@@ -14,6 +14,7 @@
 #include "systick.h"
 #include "ssp.h"
 #include "i2c.h"
+#include "i2s.h"
 #include "utils.h"
 
 #include "simpleio.h"

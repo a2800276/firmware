@@ -1,5 +1,5 @@
-#ifndef _STARTUP_H_
-#define _STARTUP_H_
+#ifndef _STARTUP_
+#define _STARTUP_
 
 /** first code entry point from reset. Does some low level init, then calls main. */
 void bootstrap(void);
