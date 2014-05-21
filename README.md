@@ -1,4 +1,5 @@
 firmware
 ========
 
-Relayr Firmware to be nstalled on KitKat Board and it's successors
+Sparrow firmware development with examples. Basically the LPC18xx/LPC43xx MCU,
+drivers for the on-board peripherals and some utility functions.

@@ -3,7 +3,11 @@
 
 #define NOP { __asm volatile ( "NOP\n"); }
 
-#include "types.h"
+#include "../core/types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** puts the CPU to sleep until an interrupt occurs */
 void waitForInterrupt();
@@ -18,6 +22,8 @@ void enableInterrupts();
 @param count delay to wait. Timing is compiler-dependent, at least 3 clock cycles per count */
 void delay(uint32_t count);
 
+#ifdef __cplusplus
+}
 #endif
 
-
+#endif

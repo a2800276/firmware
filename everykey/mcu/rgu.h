@@ -1,7 +1,7 @@
 #ifndef _RGU_
 #define _RGU_
 
-#include "types.h"
+#include "../core/types.h"
 
 typedef struct {
 	HW_UU unused1 [64];
@@ -61,7 +61,19 @@ typedef enum RGU_RESET_INDEX {
 	CAN0_RST = 55
 } RGU_RESET_INDEX;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/** trigger a reset in a given domain. May return before reset is complete. */
 void rgu_trigger_reset(RGU_RESET_INDEX idx);
+
+/** check whether a reset in a given domain is running. Useful for
+blocking until a reset is done. */
 bool rgu_reset_active(RGU_RESET_INDEX idx);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

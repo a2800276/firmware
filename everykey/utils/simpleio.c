@@ -1,6 +1,6 @@
 #include "simpleio.h"
-#include "scu.h"
-#include "gpio.h"
+#include "../mcu/scu.h"
+#include "../mcu/gpio.h"
 
 #define PIN_MINOR(pin_id)((pin_id)&0x1f)
 #define PIN_MAJOR(pin_id)(((pin_id)>>8)&0x0f)

@@ -1,18 +1,18 @@
 #include "clocks.h"
-#include "utils.h"
-#include "board.h"
+#include "../board.h"
+#include "../utils/utils.h"
 
 void clock_enable_xtal(bool enable) {
 
 #if (XTAL_IS_CRYSTAL)
 	CGU_HW->XTAL_OSC_CTRL &= ~XTAL_OSC_CTRL_BYPASS;
-#else 
+#else
 	CGU_HW->XTAL_OSC_CTRL |= XTAL_OSC_CTRL_BYPASS;
 #endif
 
 #if (XTAL_MHZ > 17)
 	CGU_HW->XTAL_OSC_CTRL |= XTAL_OSC_CTRL_HF;
-#else 
+#else
 	CGU_HW->XTAL_OSC_CTRL &= ~XTAL_OSC_CTRL_HF;
 #endif
 
@@ -133,5 +133,3 @@ bool clock_get_auto(CCU_BRANCH_CLOCK clock) {
 bool clock_get_wakeup(CCU_BRANCH_CLOCK clock) {
 	return ((((HW_RO*)CCU1_HW)[2*clock+65]) & CCU_WAKEUP) ? true : false;
 }
-
-

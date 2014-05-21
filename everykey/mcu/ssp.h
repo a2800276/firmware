@@ -1,7 +1,7 @@
 #ifndef _SSP_
 #define _SSP_
 
-#include "types.h"
+#include "../core/types.h"
 
 typedef struct {
 	HW_RW CR0;
@@ -50,10 +50,14 @@ typedef enum {
 typedef enum {
 	SSP_STAT_TX_EMPTY         = 1,
 	SSP_STAT_TX_NOT_FULL      = 2,
-	SSP_STAT_RX_NOT_EMPTY     = 4,	
+	SSP_STAT_RX_NOT_EMPTY     = 4,
 	SSP_STAT_RX_FULL          = 8,
 	SSP_STAT_BUSY             = 16
 } SSP_STAT_VALUES;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /** initializes a ssp module.
 @param hw ssp peripheral to init
@@ -62,10 +66,10 @@ typedef enum {
 @param master set true to configure master role, false for slave
 @param framelength length of transfer units in bits (4..16)
 @param clockDivide bit clock rate in relation to the main (PLL1) frequency
-@param sselPin (hi byte: port major, low byte: port minor, major 16 = clocks, unused = 0xffff) 
-@param sckPin (hi byte: port major, low byte: port minor, major 16 = clocks, unused = 0xffff) 
-@param misoPin (hi byte: port major, low byte: port minor, major 16 = clocks, unused = 0xffff) 
-@param mosiPin (hi byte: port major, low byte: port minor, major 16 = clocks, unused = 0xffff) */ 
+@param sselPin (hi byte: port major, low byte: port minor, major 16 = clocks, unused = 0xffff)
+@param sckPin (hi byte: port major, low byte: port minor, major 16 = clocks, unused = 0xffff)
+@param misoPin (hi byte: port major, low byte: port minor, major 16 = clocks, unused = 0xffff)
+@param mosiPin (hi byte: port major, low byte: port minor, major 16 = clocks, unused = 0xffff) */
 
 void ssp_init(SSP_STRUCT* hw, SSP_FRAMEFORMAT format, uint8_t spiMode, bool master,
 	int8_t framelength, uint16_t clockDivide,
@@ -78,7 +82,12 @@ Only use for frame lengths of up to 8 bits.
 @param writeBuf buffer to transmit. Set to null to send zero frames.
 @param readBuf buffer to hold received data. Set to null to ignore read frames.
 @param lsbFirst set to true to reverse bytes before sending and after receiving. If false, bytes are transferred msb first. Only works for 8 bit frames.
-@return true on success, false otherwise */ 
+@return true on success, false otherwise */
 bool ssp_write_read_sync8(SSP_STRUCT* hw, uint16_t length, const uint8_t* writeBuf, uint8_t* readBuffer, bool lsbFirst);
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif

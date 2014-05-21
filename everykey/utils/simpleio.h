@@ -1,9 +1,9 @@
 #ifndef _SIMPLEIO_
 #define _SIMPLEIO_
 
-#include "types.h"
+#include "../core/types.h"
 
-/* A pin_id represents package pin name (P<major>_<minor>), the scu function, the GPIO port and index in one value. 
+/* A pin_id represents package pin name (P<major>_<minor>), the scu function, the GPIO port and index in one value.
 33222222 22221111 11111100 00000000
 10987654 32109876 54321098 76543210
 0<F><PT> 000<IDX> 000<MAJ> 000<MIN>
@@ -113,6 +113,10 @@ typedef uint32_t pin_id;
 #define P9_6_AS_GPIO_4_11  0x040b0906
 // PF_4 has no GPIO function
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** configures a GPIO pin_id, output */
 void set_digital_output(pin_id pin);
 
@@ -136,5 +140,9 @@ void set_digital_input(pin_id pin, bool pullup, bool pulldown, bool glitchfilter
 @param pin pin to read
 @return the pin's value */
 bool read_pin(pin_id pin);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

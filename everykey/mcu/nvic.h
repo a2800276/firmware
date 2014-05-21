@@ -1,11 +1,11 @@
 /*********************************************************************
- Nested vectored interrupt controller and System Control Block (SCB) 
+ Nested vectored interrupt controller and System Control Block (SCB)
 **********************************************************************/
 
 #ifndef _NVIC_
 #define _NVIC_
 
-#include "types.h"
+#include "../core/types.h"
 
 /* -----------------------------------
    --- NVIC --------------------------
@@ -28,7 +28,7 @@ typedef struct {
 	HW_RW ICPR1;
 	HW_UU unused4[30];
 	HW_RO IABR0;	//Interrupt active
-	HW_RO IABR1;	
+	HW_RO IABR1;
 	HW_UU unused5[62];
 	HW_RW IPR0;		//Interrupt priority
 	HW_RW IPR1;
@@ -99,7 +99,7 @@ typedef enum NVIC_INTERRUPT_INDEX {
 /* ----------------------------------
    --- System Control Block (SCB) ---
    ----------------------------------
- 
+
  Low level interrupt, exception and handler configuration, overall system control.
  This information is not taken from the LPC datasheet, but from ARM's info center.
  It is identical for most (all?) Cortex M3s. */
@@ -135,6 +135,10 @@ typedef enum AIRCR_BITS {
  is off the other block, so it's addressed separately */
 #define SCB_ACTLR ((HW_RW*)0xe00e008)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** enables a given interrupt. Note this only applies to the NVIC, enabling a specific interrupt might require additional setup in other peripherals.
 	@param interrupt index of interrupt to enable
 */
@@ -145,7 +149,7 @@ void nvic_enable_interrupt(NVIC_INTERRUPT_INDEX interrupt);
 */
 void nvic_disable_interrupt(NVIC_INTERRUPT_INDEX interrupt);
 
-/** returns whether a given interrupt is currently enabled 
+/** returns whether a given interrupt is currently enabled
 	@param interrupt index of interrupt to query
 	@return true if the interrupt is enabled, false otherwise
 */
@@ -167,7 +171,7 @@ void nvic_clear_interrupt_pending(NVIC_INTERRUPT_INDEX interrupt);
 */
 bool nvic_is_interrupt_pending(NVIC_INTERRUPT_INDEX interrupt);
 
-/** returns whether a given interrupt is currently active 
+/** returns whether a given interrupt is currently active
 	@param interrupt index of interrupt to query
 	@return true if the interrupt is active, false otherwise
 */
@@ -204,7 +208,10 @@ void nvic_set_interrupt_group_priority_bits(uint8_t groupLength);
 
 /** requests a system reset */
 void nvic_reset_system();
-	
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif

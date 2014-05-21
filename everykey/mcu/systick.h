@@ -1,7 +1,8 @@
 #ifndef _SYSTICK_
 #define _SYSTICK_
 
-#include "types.h"
+#include "../core/types.h"
+
 // -----------------------------------
 // --- SYSTICK  ----------------------
 // -----------------------------------
@@ -20,11 +21,19 @@ typedef struct {
 /** This value can be used to start the systick timer in the recommended interval of 100Hz when running in full speed */
 #define SYSTICK_10MS (MAIN_CLOCK_MHZ*10000-1)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** Start systick using system clock
 @param cycles 24bit value of clocks to elapse between systick invocations (-1) */
 void systick_start(uint32_t clocks);
 
 /** Stops systick */
 void systick_stop(void);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

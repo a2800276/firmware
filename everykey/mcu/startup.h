@@ -1,6 +1,10 @@
 #ifndef _STARTUP_
 #define _STARTUP_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** first code entry point from reset. Does some low level init, then calls main. */
 void bootstrap(void);
 
@@ -8,8 +12,8 @@ void bootstrap(void);
 May be implemented by user code, defaults to nothing. */
 void earlysetup(void);
 
-/** main code - called after bootstrap is done. Must be impemented by user code. */
-void main(void);
+/** main code - called after bootstrap is done. Must be impemented by user code. Return value is ignored. */
+int main(void);
 
 /** interrupt handlers. These can be implemented by the application or
 by library code. If not implemented, they default to an endless loop.
@@ -76,5 +80,8 @@ void can0_handler(void);
 void qei_handler(void);
 void invalid_interrupt_handler(void);	//Used for all unassigned interrupt slots
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

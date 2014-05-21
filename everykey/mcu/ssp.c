@@ -1,7 +1,8 @@
 #include "ssp.h"
 #include "clocks.h"
-#include "progfault.h"
 #include "startup.h"
+#include "scu.h"
+#include "../utils/progfault.h"
 
 bool ssp_writebuf_empty(SSP_STRUCT* hw);
 bool ssp_writebuf_full(SSP_STRUCT* hw);
@@ -22,10 +23,12 @@ void ssp_init(SSP_STRUCT* hw, SSP_FRAMEFORMAT format, uint8_t spiMode, bool mast
 	//Temporarily disable SSP so that we can configure without surprises
 	hw->CR1 &= ~SSP_ENABLE;
 
-	clock_enable(BASE_Mx_CLK, true);
+	clock_set_source(BASE_Mx_CLK, true, CLKSRC_PLL1);
 	if (hw == SSP0_HW) {
 		clock_set_source(BASE_SSP0_CLK, true, CLKSRC_PLL1);
 		clock_enable(CLK_Mx_SSP0, true);
+		clock_enable(CLK_APB0_SSP0, true);
+
 		switch (sselPin) {
 		 	case 0x0100: scu_set_pin_mode(1,0,5); break;
 		 	case 0x0306: scu_set_pin_mode(3,6,2); break;
@@ -63,6 +66,7 @@ void ssp_init(SSP_STRUCT* hw, SSP_FRAMEFORMAT format, uint8_t spiMode, bool mast
 	} else {
 		clock_set_source(BASE_SSP1_CLK, true, CLKSRC_PLL1);
 		clock_enable(CLK_Mx_SSP1, true);
+		clock_enable(CLK_APB2_SSP1, true);
 		switch (sselPin) {
 		 	case 0x0105: scu_set_pin_mode(1,5,5); break;
 		 	case 0x0114: scu_set_pin_mode(1,20,1); break;
@@ -155,7 +159,7 @@ uint8_t ssp_reverse8(uint8_t val) {
 }
 
 bool ssp_write_read_sync8(SSP_STRUCT* hw, uint16_t length, const uint8_t* writeBuf, uint8_t* readBuffer, bool lsbFirst) {
-	
+
 //	while (!ssp_readbuf_empty(hw)) {	//Flush read buffer
 //		ssp_read_frame(hw);
 //	}
@@ -168,7 +172,7 @@ bool ssp_write_read_sync8(SSP_STRUCT* hw, uint16_t length, const uint8_t* writeB
 			if (lsbFirst) outVal = ssp_reverse8(outVal);
 			sent++;
 			ssp_write_frame(hw, outVal);
-		} 
+		}
 		if (ssp_readbuf_overflow(hw)) return false;
 		if ((!(ssp_readbuf_empty(hw))) && (received < length)) {
 			uint16_t inVal = ssp_read_frame(hw);

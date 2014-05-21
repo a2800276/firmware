@@ -1,10 +1,12 @@
 /* High level API for the sparrow board */
 
-#include "sparrow.h"
-#include "clocks.h"
-#include "i2c.h"
 #include "board.h"
+#include "sparrow.h"
+#include "mcu/clocks.h"
+#include "mcu/i2c.h"
+#include "mcu/i2s.h"
 #include "peripherals/tlv.h"
+#include "utils/utils.h"
 
 #define TLV_I2C_BUS 0
 
@@ -39,10 +41,10 @@ void sparrow_init() {
 	i2s_configure_pin(I2S0_TX_WS_GROUP, I2S0_TX_WS_IDX, I2S0_TX_WS_MODE);
 	i2s_configure_pin(I2S0_TX_SCK_GROUP, I2S0_TX_SCK_IDX, I2S0_TX_SCK_MODE);
 	i2s_configure_pin(I2S0_TX_SD_GROUP, I2S0_TX_SD_IDX, I2S0_TX_SD_MODE);
-	i2s_configure_pin(I2S0_RX_MCLK_GROUP, I2S0_RX_MCLK_IDX, I2S0_RX_MCLK_MODE);
-	i2s_configure_pin(I2S0_RX_WS_GROUP, I2S0_RX_WS_IDX, I2S0_RX_WS_MODE);
-	i2s_configure_pin(I2S0_RX_SCK_GROUP, I2S0_RX_SCK_IDX, I2S0_RX_SCK_MODE);
-	i2s_configure_pin(I2S0_RX_SD_GROUP, I2S0_RX_SD_IDX, I2S0_RX_SD_MODE);
+	//i2s_configure_pin(I2S0_RX_MCLK_GROUP, I2S0_RX_MCLK_IDX, I2S0_RX_MCLK_MODE);
+	//i2s_configure_pin(I2S0_RX_WS_GROUP, I2S0_RX_WS_IDX, I2S0_RX_WS_MODE);
+	//i2s_configure_pin(I2S0_RX_SCK_GROUP, I2S0_RX_SCK_IDX, I2S0_RX_SCK_MODE);
+	//i2s_configure_pin(I2S0_RX_SD_GROUP, I2S0_RX_SD_IDX, I2S0_RX_SD_MODE);
 
 	//init base clock to xtal, main clock, via pll1
 	clock_set_xtal_core_freq(MAIN_CLOCK_MHZ/XTAL_MHZ, 1);
@@ -69,8 +71,6 @@ void audio_on() {
 	write_pin(AUDIO_POWER_EN_PIN, true);
 	delay(1000000);		//TLV320AIC3100 spec: Reset low for at least 10ns
 	write_pin(AUDIO_NRESET, true);
-	delay(1000000);		//TLV320AIC3100 spec: 1ms min after reset
-	tlv_sw_reset(TLV_I2C_BUS);
 	delay(1000000);		//TLV320AIC3100 spec: 1ms min after reset
 }
 

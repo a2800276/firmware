@@ -1,5 +1,4 @@
 #include "everykey/everykey.h"
-#include "everykey/progfault.h"
 
 void main(void) {
 	sparrow_init();

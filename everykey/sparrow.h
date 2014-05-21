@@ -1,10 +1,11 @@
-/* High level API for the sparrow board. This abstraction sits on top of the standard library. Low level defines 
+/* High level API for the sparrow board. This abstraction sits on top of the standard library. Low level defines
 required by the generic library functions should go to board.h */
 
 #ifndef _SPARROW_
 #define _SPARROW_
 
-#include "simpleio.h"
+#include "core/types.h"
+#include "utils/simpleio.h"
 
 //GPIO pins
 
@@ -69,6 +70,12 @@ required by the generic library functions should go to board.h */
 
 #define SPARROW_I2S 0
 
+// Sparrow API
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 //reset all, disable all peripherals
 void sparrow_init();
 
@@ -81,6 +88,8 @@ void audio_off();
 //start audio playback
 void audio_play(uint8_t numChannels, uint8_t bitsPerSample, uint32_t sampleRate);
 
-
+#ifdef __cplusplus
+}
+#endif
 
 #endif

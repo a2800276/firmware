@@ -1,18 +1,19 @@
 #include "i2s.h"
-#include "progfault.h"
 #include "nvic.h"
+#include "scu.h"
 #include "clocks.h"
-#include "board.h"
-#include "simpleio.h"
+#include "../board.h"
+#include "../utils/progfault.h"
 
 
 
 // Preliminary data source
 uint32_t getOutSample() {
 	static uint32_t counter = 0;
-	counter+=256;
+	counter += 257;
 //	write_pin(DEBUG_LED_PIN, counter & 0x40000);
-	return (counter & 0xffff);
+	uint32_t val = (counter & 0xffff);
+	return val | (val << 16);
 }
 
 // Preliminary data drain
@@ -25,17 +26,17 @@ parameters cannot be met (i.e. bit rate too low or too high for PCLK)
 
 @param pclkHz PCLK in MHz (normally PCLK1, running at nominal processor speed, but may differ)
 @param numChannels 1 for mono, 2 for stereo
-@param bitsPerSample bit depth of samples (for one channel)
+@param clocksPerSample bits per channel (must be >= bit depth of samples)
 @param sampleRateHz audio sample rate in Hz
 @param outDivM MCLK divider on successful return. Must not be NULL.
 @param outMulM MCLK multiplier on successful return. Must not be NULL.
 @param outDivB TX/RX bit clock divider on successful return (1..64). Must not be NULL.
 */
 
-void findDividers(uint16_t pclkMHz, uint8_t numChannels, uint8_t bitsPerSample, uint32_t sampleRateHz, uint8_t* outDivM, uint8_t* outMulM, uint8_t* outDivB) {
+void findDividers(uint16_t pclkMHz, uint8_t numChannels, uint8_t clocksPerSample, uint32_t sampleRateHz, uint8_t* outDivM, uint8_t* outMulM, uint8_t* outDivB) {
 	//To avoid overflows and keep usable fidelity, frequency unit is 10Hz.
 	uint32_t pclk = pclkMHz * 50000;	//MHz to 10Hz unit, take into account that MCLK will additionally divide by two
-	uint32_t bclk = (numChannels * bitsPerSample * sampleRateHz) / 10; //10Hz unit
+	uint32_t bclk = (numChannels * clocksPerSample * sampleRateHz) / 10; //10Hz unit
 
 	//1. find largest multiple of bclk (*1..*64) below pclk as preliminary divB
 	uint8_t divB;
@@ -122,12 +123,12 @@ void i2s_start_play(uint8_t i2s, uint8_t numChannels, uint8_t bitsPerSample, uin
 	if ((numChannels < 1) || (numChannels > 2)) progfault(ILLEGAL_ARGUMENT);
 	if ((bitsPerSample != 8) && (bitsPerSample != 16) && (bitsPerSample != 32)) progfault(ILLEGAL_ARGUMENT);
 
-
+	uint8_t clocksPerChannel = bitsPerSample; //32;	//must be bitsPerSample..32
 	uint8_t mulM, divM, divB;
-	findDividers(MAIN_CLOCK_MHZ, numChannels, bitsPerSample, sampleRate, &divM, &mulM, &divB);
+	findDividers(MAIN_CLOCK_MHZ, numChannels, clocksPerChannel, sampleRate, &divM, &mulM, &divB);
 
 	uint32_t monoMask = (numChannels == 1) ? 4 : 0;
-	uint32_t halfWordPeriodMask = (bitsPerSample-1) << 6;
+	uint32_t halfWordPeriodMask = (clocksPerChannel-1) << 6;
 	uint32_t wordWidthMask;
 	if (bitsPerSample == 8) wordWidthMask = 0;
 	else if (bitsPerSample == 16) wordWidthMask = 1;

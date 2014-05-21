@@ -7,6 +7,10 @@ typedef enum {
 	PERIPHERAL_FAILURE = 3
 } PROGFAULT_CODE;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** function define for programming faults - errors that can always be avoided
 by the programmer (i.e. contract violations). Programming faults are not returned
 as a runtime result, but jump to this point. This facilitates error handling
@@ -17,5 +21,9 @@ progfault can be implemented by application code. If not, it defaults to to an
 endless loop. The default implementation can be found in defaulthandlers.h */
 
 void progfault(int error);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

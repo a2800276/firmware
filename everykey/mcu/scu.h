@@ -3,7 +3,7 @@
 #ifndef _SCU_
 #define _SCU_
 
-#include "types.h"
+#include "../core/types.h"
 
 typedef struct {	// a pin group
 	HW_RW SFS[20];			//20 pins per pin group
@@ -28,6 +28,9 @@ typedef struct {
 
 #define SCU ((SCU_STRUCT*)(0x40086000))
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* set pin function. See table 169 in user manual (UM10430) */
 void scu_set_pin_mode(uint8_t group, uint8_t idx, uint8_t mode);
@@ -53,5 +56,9 @@ void scu_set_pin_drive_strength(uint8_t group, uint8_t idx, uint8_t strength);
 @param true to enable glitch filter (both lines)
 @param true to enable long glicth filter (50ns instead of 3ns), only useful if glitch=true */
 void scu_set_i2c0_pinmode(bool enable, bool fastplus, bool glitch, bool longglitch);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -1,7 +1,7 @@
 #ifndef _GPIO_
 #define _GPIO_
 
-#include "types.h"
+#include "../core/types.h"
 
 typedef struct {
 	HW_RW8 PIN[0x20];
@@ -13,7 +13,7 @@ typedef struct {
 
 typedef struct {
 	GPIO_B_STRUCT B[8];
-	HW_UU unused1[0x3c0];		//skip from 0x0100 to 0x1000 
+	HW_UU unused1[0x3c0];		//skip from 0x0100 to 0x1000
 	GPIO_W_STRUCT W[8];
 	HW_UU unused2[0x300];		//skip from 0x1400 to 0x2000
 	HW_RW DIR[8];
@@ -38,11 +38,18 @@ typedef enum {
 	OUTPUT = 1
 } PIN_DIR;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void gpio_set_pin_dir(uint8_t port, uint8_t pin, PIN_DIR dir);
 
 bool gpio_read_digital_pin(uint8_t port, uint8_t pin);
 
 void gpio_write_digital_pin(uint8_t port, uint8_t pin, bool value);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

@@ -3,7 +3,7 @@
 #ifndef _IIC_
 #define _IIC_
 
-#include "types.h"
+#include "../core/types.h"
 
 /** I2C status response codes */
 typedef enum {
@@ -97,13 +97,17 @@ typedef enum {
 	I2C_MODE_FASTPLUS = 2	//1 mbps (fast mode plus)
 } I2C_MODE;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** Turns on I2C as master in a specific speed mode. Does all setup.
 This function assumes that the respective peripheral clock is running at full main speed.
 Note that I2C1 can only be used in fast mode.
 I2C0 pins are dedicated, so they can be initialized automatically.
 I2C1 IO pins are NOT initialized automatically, needs to be done manually (see i2c_configure_pin)
  @param i2c I2C engine (0 or 1)
- @param mode operation speed 
+ @param mode operation speed
  @param state pointer to an uninitialized I2C_State structure in RAM. Must not be null. */
 void i2c_init(uint8_t i2c, I2C_MODE mode);
 
@@ -115,7 +119,7 @@ void i2c_configure_pin(uint8_t group, uint8_t idx, uint8_t mode);
 
 //TODO: Function to turn peripheral off
 
-/** Writes data to I2C. 
+/** Writes data to I2C.
  @param i2c I2C engine (0 or 1)
  @param addr slave address
  @param len number of bytes to write
@@ -130,7 +134,7 @@ I2C_STATUS i2c_write(uint8_t i2c,
                      I2C_CompletionHandler handler,
                      uint32_t refcon);
 
-/** Reads data from I2C. 
+/** Reads data from I2C.
  @param i2c I2C engine (0 or 1)
  @param addr slave address
  @param len number of bytes to read
@@ -170,7 +174,7 @@ I2C_STATUS i2c_write_read(uint8_t i2c,
 bool i2c_transaction_running(uint8_t i2c);
 
 
-/** tries to cancel a pending transaction 
+/** tries to cancel a pending transaction
  @param i2c I2C engine (0 or 1) */
 void i2c_cancel_transaction(uint8_t i2c);
 
@@ -188,5 +192,9 @@ I2C_STATUS i2c_write_sync(uint8_t i2c,
                           uint8_t addr,
                           uint16_t len,
                           uint8_t* buf);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

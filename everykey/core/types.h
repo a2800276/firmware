@@ -22,10 +22,13 @@ typedef _Bool bool;
 
 #endif
 
-#ifndef NULL 
+#ifndef NULL
+#ifdef __cplusplus
+#define NULL 0
+#else
 #define NULL ((void*)0)
 #endif
-
+#endif
 
 /* Some definitions for registers memory mapping. All just resolve to volatile. This way, allowed usage can be seen in the typedefs. HW_WO: Write only, HW_RO: Read only, HW_RW: Read/Write, HW_RS: Reserved (do not access), HW_UU: Unused (padding etc.) */
 

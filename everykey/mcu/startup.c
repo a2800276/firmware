@@ -1,6 +1,10 @@
+#include "../core/types.h"
 #include "startup.h"
-#include "types.h"
 #include "vectortable.h"
+#include "../utils/utils.h"
+
+/* Global scope C++ constructors */
+typedef void (*init_func)();
 
 /* These variables are used to pass memory locations from the linker script to our code. */
 extern uint8_t _LD_STACK_TOP;
@@ -8,14 +12,17 @@ extern uint8_t _LD_END_OF_TEXT;
 extern uint8_t _LD_START_OF_DATA;
 extern uint8_t _LD_END_OF_DATA;
 extern uint8_t _LD_END_OF_BSS;
+extern init_func _LD_INIT_ARRAY_START;
+extern init_func _LD_INIT_ARRAY_END;
 
 /* The vector table - contains the initial stack pointer and
  pointers to boot code as well as interrupt and fault handler pointers.
  The processor will expect this to be located at address 0x0, so
- we put it into a separate linker section. */
-__attribute__ ((section(".vectors")))
+ we put it into a separate section for the linker. In addition, the vector
+ is marked as used and annotated as "keep" in the linker script to prevent
+ the linker garbage collection from removing it. */
 
-const VECTOR_TABLE vtable = {
+const VECTOR_TABLE vtable __attribute__((used, section(".vectors"))) = {
 	//Common for all Cortex M3/M4 MCUs
 	&_LD_STACK_TOP,          //Stack top
 	bootstrap,               //boot code
@@ -92,13 +99,10 @@ const VECTOR_TABLE vtable = {
 
 void bootstrap(void) {
 	earlysetup();
-	
+
 	//Set STKALIGN in NVIC. Not stritly necessary, but good to do. TODO: Make more readable, place definition at a proper place
 #define NVIC_CCR ((volatile unsigned long *)(0xE000ED14))
 //	*NVIC_CCR = *NVIC_CCR | 0x200;
-
-	// turn up the speed - TODO ******
-//	SYSCON_InitCore72MHzFromExternal12MHz();	
 
 	//copy initial values of variables (non-const globals and static variables) from FLASH to RAM
 	uint8_t* mirror = &_LD_END_OF_TEXT; //copy from here
@@ -108,8 +112,9 @@ void bootstrap(void) {
 	//set uninitialized globals (and globals initialized to zero) to zero
 	while (ram < (&_LD_END_OF_BSS)) *(ram++) = 0;
 
-	//turn on power for some common peripherals (IO, IOCON) - TODO *******
-	//SYSCON->SYSAHBCLKCTRL |= SYSCON_SYSAHBCLKCTRL_GPIO | SYSCON_SYSAHBCLKCTRL_IOCON; // Enable common clocks: GPIO and IOCON
+  //call global scope constructors
+  init_func* i;
+  for (i = &_LD_INIT_ARRAY_START; i != &_LD_INIT_ARRAY_END; i++) (*i)();
 
 	//jump into main user code (which should setup needed timers and interrupts or not return at all)
 	main();
@@ -119,4 +124,3 @@ void bootstrap(void) {
 		waitForInterrupt();
 	}
 }
-

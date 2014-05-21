@@ -1,7 +1,7 @@
 #ifndef _I2S_
 #define _I2S_
 
-#include "types.h"
+#include "../core/types.h"
 
 typedef struct {
 	HW_RW DAO;
@@ -23,6 +23,10 @@ typedef struct {
 
 #define I2S ((I2S_STRUCT*)(0x400A2000))
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void i2s_init(uint8_t i2s);
 
 /** configures a pin to use with I2C1. Should be called prior to use for SDA and SCL pin
@@ -35,5 +39,8 @@ void i2s_shutdown(uint8_t i2s);
 
 void i2s_start_play(uint8_t i2s, uint8_t numChannels, uint8_t bitsPerSample, uint32_t sampleRate);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

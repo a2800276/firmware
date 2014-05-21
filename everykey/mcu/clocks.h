@@ -1,5 +1,5 @@
 /* CGU (clock generation unit) and CCU (clock control unit)
- 
+
 The CGU controls the generation of base clocks from various internal and external
 clock sources. It controls how PLLs, multipliers and dividers derive the clock rates for
 base clocks.
@@ -11,7 +11,7 @@ The base clock can be turned off if all corresponding branch clocks are disabled
 #ifndef _CGU_CCU_
 #define _CGU_CCU_
 
-#include "types.h"
+#include "../core/types.h"
 
 
 typedef struct {
@@ -100,6 +100,63 @@ typedef enum {
 	BASE_CGU_OUT1_CLK = 27  //MCU speed (180 or 204MHz) max
 } CGU_BASE_CLOCK;
 
+/** Hint: Values*8 are offset to CCU1->CLK_APB3_BUS_CFG (first branch clock) */
+typedef enum {
+	CLK_APB3_BUS         = 0,
+	CLK_APB3_I2C1        = 1,
+	CLK_APB3_DAC         = 2,
+	CLK_APB3_ADC0        = 3,
+	CLK_APB3_ADC1        = 4,
+	CLK_APB3_CAN0        = 5,
+	CLK_APB1_BUS         = 32,
+	CLK_APB1_MOTOCON_PWM = 33,
+	CLK_APB1_I2C0        = 34,
+	CLK_APB1_I2S         = 35,
+	CLK_APB1_CAN1        = 36,
+	CLK_SPIFI            = 64,
+	CLK_Mx_BUS           = 96,
+	CLK_Mx_SPIFI         = 97,
+	CLK_Mx_GPIO          = 98,
+	CLK_Mx_LCD           = 99,
+	CLK_Mx_ETHERNET      = 100,
+	CLK_Mx_USB0          = 101,
+	CLK_Mx_EMC           = 102,
+	CLK_Mx_SDIO          = 103,
+	CLK_Mx_DMA           = 104,
+	CLK_Mx_M3CORE        = 105,
+	CLK_Mx_SCT           = 109,
+	CLK_Mx_USB1          = 110,
+	CLK_Mx_EMCDIV        = 111,
+	CLK_Mx_FLASHA        = 112,
+	CLK_Mx_FLASHB        = 113,
+	CLK_Mx_EEPROM        = 116,
+	CLK_Mx_WWDT          = 128,
+	CLK_Mx_USART0        = 129,
+	CLK_Mx_UART1         = 130,
+	CLK_Mx_SSP0          = 131,
+	CLK_Mx_TIMER0        = 132,
+	CLK_Mx_TIMER1        = 133,
+	CLK_Mx_SCU           = 134,
+	CLK_Mx_CREG          = 135,
+	CLK_Mx_RITIMER       = 160,
+	CLK_Mx_USART2        = 161,
+	CLK_Mx_USART3        = 162,
+	CLK_Mx_TIMER2        = 163,
+	CLK_Mx_TIMER3        = 164,
+	CLK_Mx_SSP1          = 165,
+	CLK_Mx_QEI           = 166,
+	CLK_USB0             = 224,
+	CLK_USB1             = 256,
+	CLK_AUDIO            = 512,
+	CLK_APB2_USART3      = 544,
+	CLK_APB2_USART2      = 576,
+	CLK_APB0_USART1      = 608,
+	CLK_APB0_USART0      = 640,
+	CLK_APB2_SSP1        = 672,
+	CLK_APB0_SSP0        = 704,
+	CLK_SDIO             = 736
+} CCU_BRANCH_CLOCK;
+
 /** sources for base clock output stages - not all sources are allowed for all clocks, see manual */
 typedef enum {
 	CLKSRC_32KOSC = 0,      //32 KHz oscillator
@@ -179,7 +236,7 @@ typedef struct {
 	HW_RW CLK_APB1_BUS_CFG;         // 32
 	HW_RO CLK_APB1_BUS_STAT;
 	HW_RW CLK_APB1_MOTOCON_PWM_CFG; // 33
-	HW_RO CLK_APB1_MOTOCON_PWM_STAT; 
+	HW_RO CLK_APB1_MOTOCON_PWM_STAT;
 	HW_RW CLK_APB1_I2C0_CFG;        // 34
 	HW_RO CLK_APB1_I2C0_STAT;
 	HW_RW CLK_APB1_I2S_CFG;         // 35
@@ -241,7 +298,7 @@ typedef struct {
 	HW_RO CLK_M3_SCU_STAT;
 	HW_RW CLK_M3_CREG_CFG;          // 135
 	HW_RO CLK_M3_CREG_STAT;
-	HW_UU UNUSED8[48];         
+	HW_UU UNUSED8[48];
 	HW_RW CLK_M3_RITIMER_CFG;       // 160
 	HW_RO CLK_M3_RITIMER_STAT;
 	HW_RW CLK_M3_USART2_CFG;        // 161
@@ -297,63 +354,6 @@ typedef struct {
 
 #define CCU2_HW ((CCU2_STRUCT*)(0x40052000))
 
-/** Hint: Values*8 are offset to CCU1->CLK_APB3_BUS_CFG (first branch clock) */
-typedef enum {
-	CLK_APB3_BUS         = 0,
-	CLK_APB3_I2C1        = 1,
-	CLK_APB3_DAC         = 2,
-	CLK_APB3_ADC0        = 3,
-	CLK_APB3_ADC1        = 4,
-	CLK_APB3_CAN0        = 5,
-	CLK_APB1_BUS         = 32,
-	CLK_APB1_MOTOCON_PWM = 33,
-	CLK_APB1_I2C0        = 34,
-	CLK_APB1_I2S         = 35,
-	CLK_APB1_CAN1        = 36,
-	CLK_SPIFI            = 64,
-	CLK_Mx_BUS           = 96,
-	CLK_Mx_SPIFI         = 97,
-	CLK_Mx_GPIO          = 98,
-	CLK_Mx_LCD           = 99,
-	CLK_Mx_ETHERNET      = 100,
-	CLK_Mx_USB0          = 101,
-	CLK_Mx_EMC           = 102,
-	CLK_Mx_SDIO          = 103,
-	CLK_Mx_DMA           = 104,
-	CLK_Mx_M3CORE        = 105,
-	CLK_Mx_SCT           = 109,
-	CLK_Mx_USB1          = 110,
-	CLK_Mx_EMCDIV        = 111,
-	CLK_Mx_FLASHA        = 112,
-	CLK_Mx_FLASHB        = 113,
-	CLK_Mx_EEPROM        = 116,
-	CLK_Mx_WWDT          = 128,
-	CLK_Mx_USART0        = 129,
-	CLK_Mx_UART1         = 130,
-	CLK_Mx_SSP0          = 131,
-	CLK_Mx_TIMER0        = 132,
-	CLK_Mx_TIMER1        = 133,
-	CLK_Mx_SCU           = 134,
-	CLK_Mx_CREG          = 135,
-	CLK_Mx_RITIMER       = 160,
-	CLK_Mx_USART2        = 161,
-	CLK_Mx_USART3        = 162,
-	CLK_Mx_TIMER2        = 163,
-	CLK_Mx_TIMER3        = 164,
-	CLK_Mx_SSP1          = 165,
-	CLK_Mx_QEI           = 166,
-	CLK_USB0             = 224,
-	CLK_USB1             = 256,
-	CLK_AUDIO            = 512,
-	CLK_APB2_USART3      = 544,
-	CLK_APB2_USART2      = 576,
-	CLK_APB0_USART1      = 608,
-	CLK_APB0_USART0      = 640,
-	CLK_APB2_SSP1        = 672,
-	CLK_APB0_SSP0        = 704,
-	CLK_SDIO             = 736
-} CCU_BRANCH_CLOCK;
-
 /* Bits for status and config registers */
 typedef enum {
 	CCU_RUN           = 0x01,
@@ -361,7 +361,11 @@ typedef enum {
 	CCU_WAKEUP        = 0x04
 } CCU_STAT_CFG_VALUES;
 
-/** enables or disables the external HS crystal and sets the crystal parameters according to the 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/** enables or disables the external HS crystal and sets the crystal parameters according to the
 platform settings (see platformsettings.h)
 @param enable true to turn crystal on, false to turn it off  */
 void clock_enable_xtal(bool enable);
@@ -383,7 +387,7 @@ bool clock_pll_locked(CGU_PLL_ID pll);
 		For PLL1, allowed values are 1..4
 @param fbDiv feedback divider M (range is pll-dependent, set to 0 to disable postdivider)
 		For PLL1, allowed values are 1..256
-@param postDiv postdivider P (range is pll-dependent, set to 0 to disable postdivider) 
+@param postDiv postdivider P (range is pll-dependent, set to 0 to disable postdivider)
 		For PLL1, allowed values are 1,2,4,8,16
 @param fbsel if true, feedback is generated from the output clock.
 		if false, feedback is generated from the cco directly, before postDiv operation (output frequency lower)
@@ -442,5 +446,8 @@ bool clock_get_auto(CCU_BRANCH_CLOCK clock);
 @return true if it is running, false otherwise */
 bool clock_get_wakeup(CCU_BRANCH_CLOCK clock);
 
+#ifdef __cplusplus
+}
 #endif
 
+#endif

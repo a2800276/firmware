@@ -2,7 +2,7 @@
 
 /* MEMORY describes the device's memory blocks and their addresses */
 
-MEMORY { 
+MEMORY {
   flash (rx)  : ORIGIN = 0x00000000, LENGTH = 256K
 /*  flash (rx)  : ORIGIN = 0x1a000000, LENGTH = 256K */
   ram   (rwx) : ORIGIN = 0x10000000, LENGTH =  32K
@@ -16,21 +16,26 @@ _LD_STACK_TOP = 0x10007ff0; /* Stack should start here */
 
 SECTIONS {
 
-    /* vector table must be located at beginning of flash,
-     * so we assign it to a separate linker section.
-     * It contains stack top address, start code and
-     * interrupt handler pointers.  */
+    /* boot section at 0x00000000 */
     vectors : {
-        *(.vectors)
+      KEEP(*(.vectors .vectors.*))        /* Must be first - we want this to be at 0. */
     } >flash
- 
-    /* .text section contains code and readonly (const) globals */
-    text : {   
-        *(.text)
-        *(.rodata)
-	_LD_END_OF_TEXT = .;     /* Remember position (=start of RAM mirror in FLASH) */
+
+    init_array : {
+      _LD_INIT_ARRAY_START = .;     /* remember constructors start position */
+      KEEP(*(.init_array .init_array.*))
+      _LD_INIT_ARRAY_END =   .;     /* remember constructors end position */
     } >flash
-  
+
+    /* .text section contains code and other readonly (const) stuff */
+    text : {
+        *(.text .text.*)
+        *(.rodata .rodata.*)
+
+
+        _LD_END_OF_TEXT = .;     /* Remember position (=start of RAM mirror in FLASH). Must be last entry in text. */
+    } >flash
+
     /* data section contains read-write (non-const) globals and static variables
      * initialized to a value other than zero. The addresses are mapped to RAM
      * (the code needs to write to it), but initial values put to a mirror region
@@ -39,7 +44,7 @@ SECTIONS {
      * section to follow the text section directly. */
     data : {
         _LD_START_OF_DATA = .;   /* Remember position (=start of initialized RAM) */
-        *(.data);
+        *(.data .data.*);
         _LD_END_OF_DATA = .;     /* Remember position (=end of initialized RAM) */
     } >ram AT >flash
 
@@ -49,7 +54,7 @@ SECTIONS {
      * bootstrap code wants this section to follow the data section directly. */
     bss : {
         _LD_START_OF_BSS = .;   /* Remember position (=start of uninitialized RAM) */
-        *(.bss)
+        *(.bss .bss.*)
         _LD_END_OF_BSS = .;     /* Remember position (=end of uninitialized RAM) */
     } > ram
 }

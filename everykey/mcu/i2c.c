@@ -1,15 +1,14 @@
 
 #include "i2c.h"
-//#include "utils.h"
-//#include "gpio.h"
 #include "clocks.h"
 #include "nvic.h"
 #include "startup.h"
-#include "progfault.h"
 #include "rgu.h"
-#include "board.h"
+#include "scu.h"
+#include "../board.h"
+#include "../utils/progfault.h"
 
-	
+
 I2C_State i2c_state[2];	//all inited to 0
 
 void i2c_handler(uint8_t i2c) {
@@ -147,7 +146,7 @@ void i2c_init(uint8_t i2c, I2C_MODE mode) {
 	if (i2c == 0) {
 		scu_set_i2c0_pinmode(true, mode == I2C_MODE_FASTPLUS, true, false);
 	}
-	
+
 	// Turn clock for peripheral
 	clock_enable(i2c ? CLK_APB3_I2C1 : CLK_APB1_I2C0,true);
 
@@ -165,7 +164,7 @@ void i2c_init(uint8_t i2c, I2C_MODE mode) {
 	while (rgu_reset_active(resetIdx)) {}
 
 	//turn on I2C engine
-	I2C[i2c].CONSET = I2C_CONSET_I2EN; 
+	I2C[i2c].CONSET = I2C_CONSET_I2EN;
 
 	//we're done
 	i2c_state[i2c].running = true;
@@ -206,7 +205,7 @@ I2C_STATUS i2c_write_read(uint8_t i2c,
                     uint8_t* readBuf,
                     I2C_CompletionHandler handler,
                     uint32_t refcon) {
-	
+
 	if (!i2c_state[i2c].running) return I2C_STATUS_UNINITIALIZED;
 	if (i2c_transaction_running(i2c)) return I2C_STATUS_BUSY;
 	i2c_state[i2c].refcon = refcon;
@@ -249,4 +248,3 @@ I2C_STATUS i2c_write_sync(uint8_t i2c,
 	while (i2c_sync_status == I2C_STATUS_INVALID) {};
 	return i2c_sync_status;
 }
-                          

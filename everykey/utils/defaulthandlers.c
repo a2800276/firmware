@@ -7,16 +7,17 @@
 /* infinite loop. We're only there if something went terribly wrong
 (unrecoverable exception or other situations that don't allow error handling).
 Wait for debugger to pick up. */
-static void deadend(void) {
+
+void deadend(void) {
 	while (1) {}
 }
 
 /* a function that does nothing. Useful for defaulting optional handlers */
-static void nothing(void) {
+void nothing(void) {
 }
 
 /** default handler for programming faults */
-static void standard_progfault(int error) {
+void standard_progfault(int error) {
 	while (1) {}
 }
 
@@ -30,7 +31,7 @@ i.e. a default implementation if there's no other "real" implementation */
 // ----------------------------------------------
 
 /** Optional hook for very early setup. Statics and globals are not initialized yet! */
-void earlysetup(void) DEFAULTS_TO(nothing);	
+void earlysetup(void) DEFAULTS_TO(nothing);
 
 /** interrupt handlers */
 void nmi_handler(void) DEFAULTS_TO(deadend);
