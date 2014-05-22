@@ -41,7 +41,11 @@ void scu_set_pin_drive_strength(uint8_t group, uint8_t idx, uint8_t strength) {
 }
 
 void scu_set_i2c0_pinmode(bool enable, bool fastplus, bool glitch, bool longglitch) {
-	SCU->SFSI2C0 = enable ? 
+	SCU->SFSI2C0 = enable ?
 		(0x0808 | (fastplus ? 0x0404 : 0) | (glitch ? 0x8080 : 0) | (longglitch ? 0x0101 : 0)) : 0;
 }
 
+void scu_set_clock_pin_mode(uint8_t idx, uint8_t func, bool pd, bool pu, bool hs, bool buf, bool glitch) {
+	SCU->SFSCLK[idx] =
+		(func &0x07) | (pd ? 0x8 : 0) | (pu ? 0 : 0x10) | (hs ? 0x20 : 0) | (buf ? 0x40 : 0) | (glitch ? 0x80 : 0);
+}

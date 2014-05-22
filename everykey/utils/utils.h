@@ -22,6 +22,9 @@ void enableInterrupts();
 @param count delay to wait. Timing is compiler-dependent, at least 3 clock cycles per count */
 void delay(uint32_t count);
 
+/** delay value for 1ms. Tested with GCC 4.7.3, unoptimized code @ 180MHz. USE WITH CAUTION! */
+#define DELAY_MS_UNITS 32800
+
 #ifdef __cplusplus
 }
 #endif

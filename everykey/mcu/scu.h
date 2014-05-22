@@ -50,12 +50,24 @@ void scu_enable_pin_glitch_filter(uint8_t group, uint8_t idx, bool enable);
 P1_17, P2_3, P2_4, P2_5, P8_0, P8_1, P8_2, PA_1, PA_2, PA_3 */
 void scu_set_pin_drive_strength(uint8_t group, uint8_t idx, uint8_t strength);
 
-/** Sets the i2c0 pins mode
+/** Sets the mode of the dedicated i2c0 pins
 @param enable true to turn on, false to turn off
 @param fastplus true for fast mode plus (1mbps), false otherwise
 @param true to enable glitch filter (both lines)
 @param true to enable long glicth filter (50ns instead of 3ns), only useful if glitch=true */
 void scu_set_i2c0_pinmode(bool enable, bool fastplus, bool glitch, bool longglitch);
+
+/** sets the mode of the dedicated clock pins
+@param idx clock pin idx (0-3)
+@param func pin function
+@param pd true to enable pulldown
+@param pu true to enable pullup
+@param hs true to enable high speed
+@param buf true to enable input buffer
+@param glitch true to enable glitch filter */
+void scu_set_clock_pin_mode(uint8_t idx, uint8_t func, bool pd, bool pu, bool hs, bool buf, bool glitch);
+
+
 
 #ifdef __cplusplus
 }

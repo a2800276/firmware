@@ -22,7 +22,6 @@ class Blinker {
 Blinker::Blinker(uint32_t pin) {
 	this->pinid = pin;
 	toggle = false;
-	write_pin(LED1_PIN, toggle);
 }
 
 Blinker::~Blinker() {
@@ -34,7 +33,6 @@ void Blinker::blink() {
 	write_pin(pinid, toggle);
 }
 
-
 Blinker blinker1(LED1_PIN);
 
 int main(void) {
@@ -42,7 +40,8 @@ int main(void) {
 	Blinker blinker2(LED2_PIN);
 
 	while (1) {
-		delay(5000000);
+
+		delay(500*DELAY_MS_UNITS);
 		blinker1.blink();
 		blinker2.blink();
 }

@@ -29,13 +29,14 @@ extern "C" {
 
 void i2s_init(uint8_t i2s);
 
+void i2s_shutdown(uint8_t i2s);
+
 /** configures a pin to use with I2C1. Should be called prior to use for SDA and SCL pin
 @param group pin group, e.g. 2 of P2_3
 @param idx pin idx, e.g. 3 of P2_3
 @param mode I2C mode of pin (see UM10430, SCU), e.g. 1 for P2_3 */
 void i2s_configure_pin(uint8_t group, uint8_t idx, uint8_t mode);
 
-void i2s_shutdown(uint8_t i2s);
 
 void i2s_start_play(uint8_t i2s, uint8_t numChannels, uint8_t bitsPerSample, uint32_t sampleRate);
 

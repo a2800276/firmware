@@ -66,6 +66,42 @@ required by the generic library functions should go to board.h */
 #define I2S0_RX_SD_IDX 2
 #define I2S0_RX_SD_MODE 3
 
+//SD card pin settings
+
+#define SD_CLK_CLK 2
+#define SD_CLK_MODE 4
+
+#define SD_CD_GROUP 1
+#define SD_CD_PIN 13
+#define SD_CD_MODE 7
+
+#define SD_WP_GROUP 4
+#define SD_WP_PIN 9
+#define SD_WP_MODE 4
+#define SD_WP_GPIO_PORT 5
+#define SD_WP_GPIO_IDX 13
+
+#define SD_CMD_GROUP 1
+#define SD_CMD_PIN 6
+#define SD_CMD_MODE 7
+
+#define SD_D0_GROUP 1
+#define SD_D0_PIN 9
+#define SD_D0_MODE 7
+
+#define SD_D1_GROUP 1
+#define SD_D1_PIN 10
+#define SD_D1_MODE 7
+
+#define SD_D2_GROUP 1
+#define SD_D2_PIN 11
+#define SD_D2_MODE 7
+
+#define SD_D3_GROUP 1
+#define SD_D3_PIN 12
+#define SD_D3_MODE 7
+
+
 // other settings
 
 #define SPARROW_I2S 0

@@ -10,6 +10,7 @@ typedef char int8_t;
 typedef short int16_t;
 typedef long int32_t;
 
+
 #ifndef __cplusplus
 
 #undef bool
