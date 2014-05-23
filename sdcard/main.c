@@ -1,6 +1,8 @@
 
 #include "everykey/everykey.h"
-#include "sdmmc.h"
+//#include "sdmmc.h"
+
+uint8_t status = 1;
 
 void progfault(int reason) {
 	write_pin(LED3_PIN, true);
@@ -14,61 +16,20 @@ void progfault(int reason) {
 
 static uint8_t readBuffer[BYTES_PER_SECTOR];
 
-/* SDIO wait flag */
-static volatile bool sdio_event_fired = false;
-
-/* SDMMC card info structure */
-mci_card_struct sdcardinfo;
-
-/* Very stupid delay function */
-static void sdmmc_waitms(uint32_t time) {
-	//very unreliable busy wait
-	delay(DELAY_MS_UNITS * time);
-}
-
-/** sets up the sdio interrupt */
-static void arm_sdio_interrupt(void *bits) {
-	uint32_t bit_mask = *((uint32_t *)bits);
-	/* Wait for IRQ - for an RTOS, you would pend on an event here with a IRQ based wakeup. */
-	nvic_clear_interrupt_pending(NVIC_SDIO);
-	sdio_event_fired = false;
-	sd_set_interrupt_mask(bit_mask);
-	nvic_enable_interrupt(NVIC_SDIO);
-}
-
-/** waits for sdio interrupt trigger */
-static uint32_t wait_for_sdio_interrupt(void) {
-	while (!sdio_event_fired) {}  //wait for interrupt
-
-	uint32_t status = sd_get_raw_interrupt_status();
-	sd_clear_interrupt_status(status);
-	sd_set_interrupt_mask(0);
-
-	return status;
-}
-
-/** actual sdio handler */
-void sdio_handler(void) {
-	nvic_disable_interrupt(NVIC_SDIO);
-	sdio_event_fired = true;
-}
-
 int main(void) {
 
-	/** enables SD base clock, configures pins */
+
 	sparrow_init();
+	systick_start(SYSTICK_10MS);
 
-//	nvic_disable_interrupt(NVIC_SDIO);
+	write_pin(LED1_PIN, true);
 
-	memset(&sdcardinfo, 0, sizeof(sdcardinfo));
-	sdcardinfo.card_info.evsetup_cb = arm_sdio_interrupt;
-	sdcardinfo.card_info.waitfunc_cb = wait_for_sdio_interrupt;
-	sdcardinfo.card_info.msdelay_func = sdmmc_waitms;
-
-	/* The SDIO driver needs to know the SDIO clock rate */
 	sd_init();
 
+
 //	nvic_disable_interrupt(NVIC_SDIO);
+
+	write_pin(LED1_PIN, false);
 
 	while (!sd_card_detected()) {}
 
@@ -76,7 +37,11 @@ int main(void) {
 
 	sd_set_power(true);
 
+	write_pin(LED2_PIN, false);
+	bool success = sd_init_card();
 	write_pin(LED2_PIN, true);
+
+/*
 	uint32_t result = Chip_SDMMC_Acquire(&sdcardinfo);
 	write_pin(LED2_PIN, false);
 	if (!result) progfault(PERIPHERAL_FAILURE);
@@ -87,5 +52,25 @@ int main(void) {
 	uint32_t read = Chip_SDMMC_ReadBlocks((void*)readBuffer, 0, 1);
 	if(read == 0) progfault(PERIPHERAL_FAILURE);
 	write_pin(LED3_PIN, true);
+*/
+}
+
+void systick() {
+	static uint32_t counter = 0;
+	counter++;
+	uint8_t bit = counter / 50;
+	uint8_t phase = counter % 50;
+	switch (bit) {
+		case 8:
+		case 9:
+			write_pin(LED3_PIN, false);
+			break;
+		case 10:
+			counter = 0;
+			break;
+		default:
+			write_pin(LED3_PIN, (status & (0x80 >> bit)) ? (phase < 30) : (phase < 10));
+			break;
+	}
 
 }

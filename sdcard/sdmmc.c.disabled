@@ -196,7 +196,8 @@ void Chip_SDIF_SetClock(uint32_t clk_rate, uint32_t speed)
 	sd_send_command(MCI_CMD_UPD_CLK | MCI_CMD_PRV_DAT_WAIT, 0);
 
 	/* set divider 0 to desired value */
-	sd_set_clock_divider(0, div);
+	SDMMC_HW->CLKDIV = div;
+  SDMMC_HW->CLKSRC = 0;
 
 	/* inform CIU */
 	sd_send_command(MCI_CMD_UPD_CLK | MCI_CMD_PRV_DAT_WAIT, 0);
@@ -588,7 +589,7 @@ uint32_t Chip_SDMMC_Acquire(mci_card_struct *pcardinfo)
   	switch (state) {
 		case 0:	/* Setup for SD */
 			/* check if it is SDHC card */
-			status = sdmmc_execute_command(CMD_SD_SEND_IF_COND, SD_SEND_IF_ARG, 0);
+			status = sdmmc_execute_command(MCI_CMD_INIT, SD_SEND_IF_ARG, 0);
 			if (!(status & MCI_INT_RTO)) {
 				/* check response has same echo pattern */
 				if ((g_card_info->card_info.response[0] & SD_SEND_IF_ECHO_MSK) == SD_SEND_IF_RESP) {
