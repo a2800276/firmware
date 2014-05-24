@@ -16,6 +16,8 @@ void progfault(int reason) {
 
 static uint8_t readBuffer[BYTES_PER_SECTOR];
 
+SD_CARD_INFO card_info;
+
 int main(void) {
 
 
@@ -26,9 +28,6 @@ int main(void) {
 
 	sd_init();
 
-
-//	nvic_disable_interrupt(NVIC_SDIO);
-
 	write_pin(LED1_PIN, false);
 
 	while (!sd_card_detected()) {}
@@ -38,9 +37,12 @@ int main(void) {
 	sd_set_power(true);
 
 	write_pin(LED2_PIN, false);
-	bool success = sd_init_card();
-	write_pin(LED2_PIN, true);
+	bool success = sd_init_card(&card_info);
 
+	write_pin(LED2_PIN, success);
+	write_pin(LED1_PIN, card_info.hc_card);
+	
+	status = 255;
 /*
 	uint32_t result = Chip_SDMMC_Acquire(&sdcardinfo);
 	write_pin(LED2_PIN, false);

@@ -67,10 +67,20 @@ void sparrow_init() {
 	scu_set_pin_mode(SD_WP_GROUP, SD_WP_PIN, SD_WP_MODE);
 	//TODO: configure WP pin
 	scu_set_pin_mode(SD_CMD_GROUP, SD_CMD_PIN, SD_CMD_MODE);
+	scu_set_pin_pullup(SD_CMD_GROUP, SD_CMD_PIN, true);
+	scu_enable_pin_in_buffer(SD_CMD_GROUP, SD_CMD_PIN, true);
 	scu_set_pin_mode(SD_D0_GROUP, SD_D0_PIN, SD_D0_MODE);
+	scu_set_pin_pullup(SD_D0_GROUP, SD_D0_PIN, true);
+	scu_enable_pin_in_buffer(SD_D0_GROUP, SD_D0_PIN, true);
 	scu_set_pin_mode(SD_D1_GROUP, SD_D1_PIN, SD_D1_MODE);
+	scu_set_pin_pullup(SD_D1_GROUP, SD_D1_PIN, true);
+	scu_enable_pin_in_buffer(SD_D1_GROUP, SD_D1_PIN, true);
 	scu_set_pin_mode(SD_D2_GROUP, SD_D2_PIN, SD_D2_MODE);
+	scu_set_pin_pullup(SD_D2_GROUP, SD_D2_PIN, true);
+	scu_enable_pin_in_buffer(SD_D2_GROUP, SD_D2_PIN, true);
 	scu_set_pin_mode(SD_D3_GROUP, SD_D3_PIN, SD_D3_MODE);
+	scu_set_pin_pullup(SD_D3_GROUP, SD_D3_PIN, true);
+	scu_enable_pin_in_buffer(SD_D3_GROUP, SD_D3_PIN, true);
 	scu_set_clock_pin_mode(SD_CLK_CLK, SD_CLK_MODE, false, false, true, false, false);
 
 
