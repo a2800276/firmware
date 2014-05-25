@@ -3,6 +3,7 @@
 
 #include "../core/types.h"
 
+
 typedef struct {
 	HW_RW DAO;
 	HW_RW DAI;
@@ -27,6 +28,8 @@ typedef struct {
 extern "C" {
 #endif
 
+typedef uint32_t (*I2S_PLAY_SAMPLE_CALLBACK)();
+
 void i2s_init(uint8_t i2s);
 
 void i2s_shutdown(uint8_t i2s);
@@ -38,7 +41,7 @@ void i2s_shutdown(uint8_t i2s);
 void i2s_configure_pin(uint8_t group, uint8_t idx, uint8_t mode);
 
 
-void i2s_start_play(uint8_t i2s, uint8_t numChannels, uint8_t bitsPerSample, uint32_t sampleRate);
+void i2s_start_play(uint8_t i2s, uint8_t numChannels, uint8_t bitsPerSample, uint32_t sampleRate, I2S_PLAY_SAMPLE_CALLBACK cb);
 
 #ifdef __cplusplus
 }

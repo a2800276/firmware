@@ -6,6 +6,7 @@ required by the generic library functions should go to board.h */
 
 #include "core/types.h"
 #include "utils/simpleio.h"
+#include "mcu/i2s.h"
 
 //GPIO pins
 
@@ -122,7 +123,7 @@ void audio_on();
 void audio_off();
 
 //start audio playback
-void audio_play(uint8_t numChannels, uint8_t bitsPerSample, uint32_t sampleRate);
+void audio_play(uint8_t numChannels, uint8_t bitsPerSample, uint32_t sampleRate, I2S_PLAY_SAMPLE_CALLBACK cb);
 
 #ifdef __cplusplus
 }

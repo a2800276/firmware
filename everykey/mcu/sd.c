@@ -328,23 +328,32 @@ SD_CARD_STATE sd_get_card_state(SD_CARD_INFO* info) {
   return (response >> 9) & 0x0f;
 }
 
+typedef struct {
+  volatile uint32_t des0;						/*!< Control and status */
+  volatile uint32_t des1;						/*!< Buffer size(s) */
+  volatile uint32_t des2;						/*!< Buffer address pointer 1 */
+  volatile uint32_t des3;						/*!< Buffer address pointer 2 */
+} SD_DMA_STRUCT;
+
+SD_DMA_STRUCT sd_dma[1];
+
 bool sd_read_blocks(void* to, uint32_t start_block, uint32_t block_count, SD_CARD_INFO* info) {
+  write_pin(LED1_PIN, true);
   if (block_count != 8) progfault(NOT_IMPLEMENTED);
 
   uint32_t len_bytes = (block_count) * SD_BLOCK_SIZE;
   uint32_t start_card_units = info->hc_card ? start_block : (SD_BLOCK_SIZE * start_block);
   uint32_t len_card_units = info->hc_card ? block_count : len_bytes;
 
-
   //TODO: Check card capacity **************
 
   SD_CMD_ERR err;
   uint32_t response;
-
   // determine card state, put into tran state if needed
   SD_CARD_STATE card_state = sd_get_card_state(info);
 
-  if (card_state = SD_CARD_STATE_STBY) {  //standby: put into tran
+  if (card_state == SD_CARD_STATE_STBY) {  //standby: put into tran
+    status = 12;
     err = sd_cmd(
       SD_CMD_SELECT_CARD,
       info->rca << 16,
@@ -352,17 +361,39 @@ bool sd_read_blocks(void* to, uint32_t start_block, uint32_t block_count, SD_CAR
       &response,
       false);
       if (err != SD_CMD_ERR_OK) return false;
+      status = 13;
+
       //TODO: Do we need to test new state? We're optimistic right now...
   } else if (card_state != SD_CARD_STATE_TRAN) return false;  //wrong state
 
   // set number of bytes to read
   SDMMC_HW->BYTCNT = len_bytes;
 
-  //init DMA
-//  Chip_SDIF_DmaSetup(&g_card_info->sdif_dev, (uint32_t)to, byte_count);
-//  err = sdmmc_execute_command(CMD_READ_MULTIPLE, index, 0 | MCI_INT_DATA_OVER);
+  // Reset DMA
+  SDMMC_HW->CTRL |= SD_CTRL_DMA_RESET | SD_CTRL_FIFO_RESET;
+  while (SDMMC_HW->CTRL & SD_CTRL_DMA_RESET) {}
 
-return false;  //********************
+  //Setup DMA.
+  //Note: We currently have len fixed at 4096, so we only need one DMA descriptor
+  //TODO: Build DMA chain for longer transfers
+  sd_dma[0].des1 = len_bytes;    //buffer 1 size = buffer length
+  sd_dma[0].des2 = (uint32_t)to; //buffer 1 address
+  sd_dma[0].des3 = 0;            //buffer 2 address
+  sd_dma[0].des0 = SD_DMA_FS | SD_DMA_LD | SD_DMA_CH | SD_DMA_OWN;  //flags
+  SDMMC_HW->DBADDR = (uint32_t) (&(sd_dma[0]));
+
+  err = sd_cmd(
+    SD_CMD_READ_MULTIPLE_BLOCK,
+    start_card_units,
+    SD_CMDFLAG_DATA_EXPECTED | SD_CMDFLAG_AUTO_STOP | SD_CMDFLAG_EXPECT_RESPONSE,
+    &response,
+    true);
+
+  while (sd_get_card_state(info) != SD_CARD_STATE_TRAN) {}
+
+  return (err == SD_CMD_ERR_OK) ? true : false;
+}
+
 /*
 
   // use block indexing for high capacity cards
@@ -382,12 +413,11 @@ return false;  //********************
   while (Chip_SDMMC_GetState() != SDMMC_TRAN_ST) {}
 
   return (status == SD_CMD_ERR_OK) ? true : false;
-*/
-}
 
 
 
-/*
+
+
 // SD wait flag
 static volatile bool sd_interrupt_fired = false;
 

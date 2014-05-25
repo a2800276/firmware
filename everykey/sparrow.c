@@ -87,7 +87,6 @@ void sparrow_init() {
 
 }
 
-
 void audio_on() {
 	audio_off();	//Turn off to make sure we do a proper reset
 	delay(1000000);
@@ -105,8 +104,8 @@ void audio_off() {
 	i2s_shutdown(SPARROW_I2S);
 }
 
-void audio_play(uint8_t numChannels, uint8_t bitsPerSample, uint32_t sampleRate) {
-  i2s_start_play(SPARROW_I2S, numChannels, bitsPerSample, sampleRate);
+void audio_play(uint8_t numChannels, uint8_t bitsPerSample, uint32_t sampleRate, I2S_PLAY_SAMPLE_CALLBACK cb) {
+	i2s_start_play(SPARROW_I2S, numChannels, bitsPerSample, sampleRate, cb);
   tlv_configure(TLV_I2C_BUS);
 
 	// tlv_set_clock_input(TLV_I2C_BUS);

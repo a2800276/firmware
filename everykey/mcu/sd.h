@@ -79,7 +79,8 @@ typedef enum {
 	SD_CMD_ALL_SEND_CID = 2,                      //ask for 126 bit card ID - long response R2
 	SD_CMD_SEND_RELATIVE_ADDR = 3,                //ask for card's relative address - short response R6
 	SD_CMD_SEND_STATUS = 13,                      //send card status and state - short response R1
-	SD_CMD_SELECT_CARD = 7                        //toggle between stby and tran state - short response R1b
+	SD_CMD_SELECT_CARD = 7,                       //toggle between stby and tran state - short response R1b
+	SD_CMD_READ_MULTIPLE_BLOCK = 18               //read from sdmem - short response R1
 } SD_CMD;
 
 typedef enum {
@@ -113,6 +114,16 @@ typedef enum {
 	SD_CMD_ERR_EBE,      //End bit error
 	SD_CMD_ERR_OTHER     //Unknown / other error. Should not happen.
 } SD_CMD_ERR;
+
+typedef enum {
+	SD_DMA_DIC = 0x2,    //disable interrupt on completion
+	SD_DMA_LD = 0x4,     //last descriptor
+	SD_DMA_FS = 0x8,     //first descriptor
+	SD_DMA_CH = 0x10,    //second address chained
+	SD_DMA_ER = 0x20,    //end of ring
+} SD_DMA_FLAGS;
+
+#define SD_DMA_OWN 0x80000000 /* own flag */
 
 #ifdef __cplusplus
 extern "C" {

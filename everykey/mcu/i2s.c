@@ -5,7 +5,7 @@
 #include "../board.h"
 #include "../utils/progfault.h"
 
-
+static I2S_PLAY_SAMPLE_CALLBACK playCallback;
 
 // Preliminary data source
 uint32_t getOutSample() {
@@ -34,6 +34,7 @@ parameters cannot be met (i.e. bit rate too low or too high for PCLK)
 */
 
 void findDividers(uint16_t pclkMHz, uint8_t numChannels, uint8_t clocksPerSample, uint32_t sampleRateHz, uint8_t* outDivM, uint8_t* outMulM, uint8_t* outDivB) {
+
 	//To avoid overflows and keep usable fidelity, frequency unit is 10Hz.
 	uint32_t pclk = pclkMHz * 50000;	//MHz to 10Hz unit, take into account that MCLK will additionally divide by two
 	uint32_t bclk = (numChannels * clocksPerSample * sampleRateHz) / 10; //10Hz unit
@@ -118,7 +119,9 @@ void i2s_shutdown(uint8_t i2s) {
 
 }
 
-void i2s_start_play(uint8_t i2s, uint8_t numChannels, uint8_t bitsPerSample, uint32_t sampleRate) {
+void i2s_start_play(uint8_t i2s, uint8_t numChannels, uint8_t bitsPerSample, uint32_t sampleRate, I2S_PLAY_SAMPLE_CALLBACK cb) {
+	playCallback = cb;
+
 	if (i2s > 1) progfault(ILLEGAL_ARGUMENT);
 	if ((numChannels < 1) || (numChannels > 2)) progfault(ILLEGAL_ARGUMENT);
 	if ((bitsPerSample != 8) && (bitsPerSample != 16) && (bitsPerSample != 32)) progfault(ILLEGAL_ARGUMENT);
@@ -149,7 +152,7 @@ uint8_t i2s_rx_fifo_level(uint8_t i2s) {
 
 void i2s_handler(uint8_t i2s) {
 	while (i2s_tx_fifo_level(i2s) < 8) {
-		I2S[i2s].TXFIFO = getOutSample();
+		I2S[i2s].TXFIFO = (*playCallback)();
 	}
 	while (i2s_rx_fifo_level(i2s) > 0) {
 		putInSample(I2S[i2s].RXFIFO);

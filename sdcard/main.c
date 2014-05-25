@@ -11,12 +11,28 @@ void progfault(int reason) {
 	delay(200 * DELAY_MS_UNITS);
 }
 
-/* Buffer size (in bytes) for R/W operations */
-#define BYTES_PER_SECTOR 512
-
-static uint8_t readBuffer[BYTES_PER_SECTOR];
-
 SD_CARD_INFO card_info;
+
+
+#define BUFFER_SIZE 2048
+static uint32_t buffer[BUFFER_SIZE];
+
+static volatile uint32_t playbackIdx = 0;
+static volatile uint32_t readBlockIdx = 10;
+static volatile uint8_t lastFilledBuffer = 1;
+
+void fillHalfBuffer() {
+	lastFilledBuffer = 1-lastFilledBuffer;
+
+	uint32_t* base = (&(buffer[1024*lastFilledBuffer]));
+	bool read = sd_read_blocks(base, readBlockIdx, 8, &card_info);
+	readBlockIdx+=8;
+}
+
+uint32_t getNextSample() {
+	playbackIdx = (playbackIdx+1) % BUFFER_SIZE;
+	return buffer[playbackIdx];
+}
 
 int main(void) {
 
@@ -24,25 +40,27 @@ int main(void) {
 	sparrow_init();
 	systick_start(SYSTICK_10MS);
 
-	write_pin(LED1_PIN, true);
-
 	sd_init();
-
-	write_pin(LED1_PIN, false);
 
 	while (!sd_card_detected()) {}
 
-	write_pin(LED1_PIN, true);
-
 	sd_set_power(true);
 
-	write_pin(LED2_PIN, false);
 	bool success = sd_init_card(&card_info);
 
-	write_pin(LED2_PIN, success);
-	write_pin(LED1_PIN, card_info.hc_card);
-	
-	status = 255;
+	//fillHalfBuffer();
+	//fillHalfBuffer();
+
+	audio_on();
+	audio_play(2, 16, 44100, getNextSample);
+
+	while (1) {
+		uint8_t playingBuffer = playbackIdx / 1024;
+		write_pin(LED2_PIN, playingBuffer);
+		if (lastFilledBuffer == playingBuffer) fillHalfBuffer();
+	}
+
+
 /*
 	uint32_t result = Chip_SDMMC_Acquire(&sdcardinfo);
 	write_pin(LED2_PIN, false);
