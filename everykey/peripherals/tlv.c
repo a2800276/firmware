@@ -90,7 +90,8 @@ void tlv_configure(uint8_t i2c) {
 	tlv_select_page(i2c, 1);
 	tlv_write_register(i2c, 1, 31, 0x04); //HP_DRIVER:       HP driver off, common mode voltage = 1.35V
 	tlv_write_register(i2c, 1, 33, 0x3e/*0x4e*/); //HPOUT_POP:       Parrallel powerdown, rampup 1.22s, rampdown 3.9ms
-	tlv_write_register(i2c, 1, 35, 0x88); //DACLR_MIX_ROUTE: DACL to HPL, DACR to HPR, other features off
+	//tlv_write_register(i2c, 1, 35, 0x88); //DACLR_MIX_ROUTE: DACL to HPL, DACR to HPR, other features off
+	tlv_write_register(i2c, 1, 35, 0x44); //DACLR_MIX_ROUTE: DACL to MIXL, DACR to MIXR, other features off
 	//should be 0x88 but try 35->0x44 ******
 	tlv_write_register(i2c, 1, 40, 0x06); //HPL_DRIVER:      HPL gain 0dB, HPL not muted, high imp in PD, not done yet
 	tlv_write_register(i2c, 1, 41, 0x06); //HPR_DRIVER:      HPR gain 0dB, HPR not muted, high imp in PD, not done yet
