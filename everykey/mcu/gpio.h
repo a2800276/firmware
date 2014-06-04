@@ -5,11 +5,11 @@
 
 typedef struct {
 	HW_RW8 PIN[0x20];
-} __attribute__((packed)) GPIO_B_STRUCT;
+} __attribute__((aligned(1))) GPIO_B_STRUCT;
 
 typedef struct {
 	HW_RW PIN[0x20];
-} __attribute__((packed)) GPIO_W_STRUCT;
+} __attribute__((aligned(4))) GPIO_W_STRUCT;
 
 typedef struct {
 	GPIO_B_STRUCT B[8];
@@ -29,7 +29,7 @@ typedef struct {
 	HW_RW CLR[8];
 	HW_UU unused8[0x18];		//skip from 0x22a0 to 0x2300
 	HW_RW NOT[8];
-} __attribute__((packed)) GPIO_STRUCT;
+} __attribute__((aligned(4))) GPIO_STRUCT;
 
 #define GPIO ((GPIO_STRUCT*)(0x400f4000))
 

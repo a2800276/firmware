@@ -8,6 +8,10 @@ required by the generic library functions should go to board.h */
 #include "utils/simpleio.h"
 #include "mcu/i2s.h"
 
+// -------------------------------
+// --- Board pins and settings ---
+// -------------------------------
+
 //GPIO pins
 
 #define LED1_PIN P7_4_AS_GPIO_3_12
@@ -102,28 +106,92 @@ required by the generic library functions should go to board.h */
 #define SD_D3_PIN 12
 #define SD_D3_MODE 7
 
+// ethernet pin config
+
+#define ETH_CLK_CLK 0
+#define ETH_CLK_MODE 7 /* hs slew, buffer on, glitch filter off, no pull */
+
+#define ETH_RXD0_GROUP 1
+#define ETH_RXD0_PIN 15
+#define ETH_RXD0_MODE 3 /* hs slew, buffer on, glitch filter off, no pull */
+
+#define ETH_RXD1_GROUP 0
+#define ETH_RXD1_PIN 0
+#define ETH_RXD1_MODE 2 /* hs slew, buffer on, glitch filter off, no pull */
+
+#define ETH_TXD0_GROUP 1
+#define ETH_TXD0_PIN 18
+#define ETH_TXD0_MODE 3 /* hs slew, no pull, no glitch filter */
+
+#define ETH_TXD1_GROUP 1
+#define ETH_TXD1_PIN 20
+#define ETH_TXD1_MODE 3 /* hs slew, no pull, no glitch filter */
+
+#define ETH_MDC_GROUP 7
+#define ETH_MDC_PIN 7
+#define ETH_MDC_MODE 6  /* hs slew, no pull, no glitch filter */
+
+#define ETH_TXEN_GROUP 0
+#define ETH_TXEN_PIN 1
+#define ETH_TXEN_MODE 6 /* hs slew, no pull, no glitch filter */
+
+#define ETH_CRS_DV_GROUP 1
+#define ETH_CRS_DV_PIN 16
+#define ETH_CRS_DV_MODE 7 /* 7 for DV/CRS (RMII): hs slew, no pull, buffer on, glitch filter off */
+
+#define ETH_MDIO_GROUP 1
+#define ETH_MDIO_PIN 17
+#define ETH_MDIO_MODE 3 /* hs slew, no pull, boffer on, glitch filter off */
+
+#define ETH_NINT_PIN P3_1_AS_GPIO_5_8
+#define ETH_NRST_PIN P9_5_AS_GPIO_5_18
+
 
 // other settings
 
 #define SPARROW_I2S 0
 
-// Sparrow API
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-//reset all, disable all peripherals
+// -------------------
+// --- Sparrow API ---
+// -------------------
+
+/** reset all, configure pins, disable all peripherals
+Should be called once after startup or reset-like wakeup */
 void sparrow_init();
 
-//Power on audio block, init codec
+// ----------------------------------------
+// --- AUDIO: I2S, TLV320AIC3100, Board ---
+// ----------------------------------------
+
+/** Power on audio block, init codec */
 void audio_on();
 
-//Power off audio block
+/** Power off audio block */
 void audio_off();
 
-//start audio playback
+/** start audio playback, per-sample callback
+@param numChannels 1 for mono, 2 for stereo
+@param bitsPerSample resolution in bits per sample (for one channel)
+@param sampleRate sample rate in Hz. 44100 and 48000 are tested to work.
+@param cb sample getter callback. Called at interrupt time, should return asap. */
 void audio_play(uint8_t numChannels, uint8_t bitsPerSample, uint32_t sampleRate, I2S_PLAY_SAMPLE_CALLBACK cb);
+
+// --------------------------------------------
+// --- ETHERNET: ETH, LAN8720A, LWIP, Board ---
+// --------------------------------------------
+
+/** power on ethernet block, init */
+void ethernet_on();
+
+/** power off ethernet block */
+void ethernet_off();
+
+
 
 #ifdef __cplusplus
 }

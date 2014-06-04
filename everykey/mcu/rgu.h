@@ -12,7 +12,7 @@ typedef struct {
 	HW_RO RESET_ACTIVE_STATUS[2];
 	HW_UU unused4[170];
 	HW_RW RESET_EXT_STAT[64];
-} RGU_STRUCT;
+} __attribute__((aligned(4))) RGU_STRUCT;
 
 #define RGU ((RGU_STRUCT*)0x40053000)
 

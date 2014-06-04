@@ -6,6 +6,8 @@
 #define XTAL_IS_CRYSTAL 1
 #define MAIN_CLOCK_MHZ 180
 
+#define ETH_PHY_ADDR 0  /* Ethernet PHY address */
+
 //This should go later: A pin with a LED to blink for debugging
 #define DEBUG_LED_PIN P7_6_AS_GPIO_3_14
 

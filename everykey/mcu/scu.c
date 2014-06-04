@@ -33,6 +33,15 @@ void scu_enable_pin_glitch_filter(uint8_t group, uint8_t idx, bool enable) {
 	else SCU->GROUP[group].SFS[idx] &= ~0x80;
 }
 
+void scu_set_pin(uint8_t group, uint8_t idx, uint8_t mode, bool pullup, bool pulldown, bool hs_slew, bool in_buffer, bool glitch_filter) {
+	scu_set_pin_mode(group, idx, mode);
+	scu_set_pin_pullup(group, idx, pullup);
+	scu_set_pin_pulldown(group, idx, pulldown);
+	scu_set_pin_slew_rate(group, idx, hs_slew);
+	scu_enable_pin_in_buffer(group, idx, in_buffer);
+	scu_enable_pin_glitch_filter(group, idx, glitch_filter);
+}
+
 void scu_set_pin_drive_strength(uint8_t group, uint8_t idx, uint8_t strength) {
 	uint32_t val = SCU->GROUP[group].SFS[idx];
 	val &= ~0x300;

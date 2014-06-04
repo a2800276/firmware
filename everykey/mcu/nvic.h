@@ -40,7 +40,7 @@ typedef struct {
 	HW_RW IPR7;
 	HW_UU unused6[696];
 	HW_WO STIR;	//Software trigger interrupt register
-} NVIC_STRUCT;
+} __attribute__((aligned(4))) NVIC_STRUCT;
 
 /* due to the number of interrupts, it doesn't make much sense
 to write out all masks explicitly - they are split over multiple registers anyway.

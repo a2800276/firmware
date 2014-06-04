@@ -5,7 +5,8 @@
 #include "mcu/clocks.h"
 #include "mcu/i2c.h"
 #include "mcu/i2s.h"
-#include "peripherals/tlv.h"
+#include "peripherals/tlv320aic3100.h"
+#include "peripherals/lan8720a.h"
 #include "utils/utils.h"
 
 #define TLV_I2C_BUS 0
@@ -16,7 +17,11 @@ void sparrow_init() {
 	//First: Turn off external power blocks
 	set_digital_output(BOOST_5V_EN_PIN);
 	set_digital_output(PORT_5V_EN_PIN);
-	set_digital_output(ETH_POWER_EN_PIN);
+
+//TODO: Why does this pin not work? For now, the input pullup keeps the eth domain powered up permamently.
+//Setting OUT and writing this bit caused the device to hang. Might be correct now, check again.
+//	set_digital_output(ETH_POWER_EN_PIN);
+
 	set_digital_output(AUDIO_POWER_EN_PIN);
 	set_digital_output(WIFI_POWER_EN_PIN );
 	set_digital_output(AUDIO_NRESET);
@@ -44,6 +49,8 @@ void sparrow_init() {
 	write_pin(LED2_PIN, false);
 	write_pin(LED3_PIN, false);
 
+
+
 	//I2C
 	i2c_configure_pin(I2C1_SDA_PIN_GROUP, I2C1_SDA_PIN_IDX, I2C1_SDA_PIN_MODE);
 	i2c_configure_pin(I2C1_SCL_PIN_GROUP, I2C1_SCL_PIN_IDX, I2C1_SCL_PIN_MODE);
@@ -60,6 +67,7 @@ void sparrow_init() {
 	//i2s_configure_pin(I2S0_RX_WS_GROUP, I2S0_RX_WS_IDX, I2S0_RX_WS_MODE);
 	//i2s_configure_pin(I2S0_RX_SCK_GROUP, I2S0_RX_SCK_IDX, I2S0_RX_SCK_MODE);
 	//i2s_configure_pin(I2S0_RX_SD_GROUP, I2S0_RX_SD_IDX, I2S0_RX_SD_MODE);
+
 
 	//SD
 	scu_set_pin_mode(SD_CD_GROUP, SD_CD_PIN, SD_CD_MODE);
@@ -84,6 +92,21 @@ void sparrow_init() {
 	scu_set_clock_pin_mode(SD_CLK_CLK, SD_CLK_MODE, false, false, true, false, false);
 
 
+	//Ethernet RMII
+	creg_init();
+	creg_set_eth_interface(true);
+	scu_set_clock_pin_mode(ETH_CLK_CLK, ETH_CLK_MODE, false, false, true, true, false);
+	scu_set_pin(ETH_RXD0_GROUP,   ETH_RXD0_PIN,   ETH_RXD0_MODE,   false, false, true, true,  false);
+	scu_set_pin(ETH_RXD1_GROUP,   ETH_RXD1_PIN,   ETH_RXD1_MODE,   false, false, true, true,  false);
+	scu_set_pin(ETH_TXD0_GROUP,   ETH_TXD0_PIN,   ETH_TXD0_MODE,   false, false, true, false, false);
+	scu_set_pin(ETH_TXD1_GROUP,   ETH_TXD1_PIN,   ETH_TXD1_MODE,   false, false, true, false, false);
+	scu_set_pin(ETH_MDC_GROUP,    ETH_MDC_PIN,    ETH_MDC_MODE,    false, false, true, false, false);
+	scu_set_pin(ETH_TXEN_GROUP,   ETH_TXEN_PIN,   ETH_TXEN_MODE,   false, false, true, false, false);
+	scu_set_pin(ETH_CRS_DV_GROUP, ETH_CRS_DV_PIN, ETH_CRS_DV_MODE, false, false, true, true,  false);
+	scu_set_pin(ETH_MDIO_GROUP,   ETH_MDIO_PIN,   ETH_MDIO_MODE,   false, false, true, true,  false);
+	set_digital_input(ETH_NINT_PIN, true, false, true);
+	set_digital_output(ETH_NRST_PIN);
+	write_pin(ETH_NRST_PIN, false);	//put into reset
 
 }
 
@@ -112,4 +135,23 @@ void audio_play(uint8_t numChannels, uint8_t bitsPerSample, uint32_t sampleRate,
 	// tlv_set_clock_src_bclk(TLV_I2C_BUS);
 	// tlv_set_dac_power(TLV_I2C_BUS, true, true, false);
 	// tlv_set_dac_volume(TLV_I2C_BUS, 128);
+}
+
+void ethernet_on() {
+	ethernet_off();	//turn off for a proper reset
+	delay(10*DELAY_MS_UNITS);
+//	set_digital_input(ETH_POWER_EN_PIN, true, false, false);
+//	write_pin(ETH_POWER_EN_PIN, true);
+	delay(10*DELAY_MS_UNITS);
+	write_pin(ETH_NRST_PIN, true);
+	delay(10*DELAY_MS_UNITS);
+	eth_init();
+  lan_init();
+
+}
+
+void ethernet_off() {
+	eth_shutdown();
+//	write_pin(ETH_POWER_EN_PIN, false);
+	write_pin(ETH_NRST_PIN, false);
 }

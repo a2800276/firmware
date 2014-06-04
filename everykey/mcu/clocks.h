@@ -62,7 +62,7 @@ typedef struct {
 	HW_RW BASE_AUDIO_CLK;
 	HW_RW BASE_CGU_OUT0_CLK;
 	HW_RW BASE_CGU_OUT1_CLK;
-} __attribute__((packed)) CGU_STRUCT;
+} __attribute__((aligned(4))) CGU_STRUCT;
 
 #define CGU_HW ((CGU_STRUCT*)(0x40050000))
 
@@ -319,7 +319,7 @@ typedef struct {
 	HW_UU UNUSED10[62];
 	HW_RW CLK_USB1_CFG;             // 256
 	HW_RO CLK_USB1_STAT;
-} __attribute__((packed)) CCU1_STRUCT;
+} __attribute__((aligned(4))) CCU1_STRUCT;
 
 #define CCU1_HW ((CCU1_STRUCT*)(0x40051000))
 
@@ -350,7 +350,7 @@ typedef struct {
 	HW_UU UNUSED8[62];
 	HW_RW CLK_SDIO_CFG;             // 736
 	HW_RO CLK_SDIO_STAT;
-} __attribute__((packed)) CCU2_STRUCT;
+} __attribute__((aligned(4))) CCU2_STRUCT;
 
 #define CCU2_HW ((CCU2_STRUCT*)(0x40052000))
 

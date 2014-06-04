@@ -159,7 +159,7 @@ void i2c_init(uint8_t i2c, I2C_MODE mode) {
 	nvic_enable_interrupt((i2c == 0) ? NVIC_I2C0 : NVIC_I2C1);
 
 	// reset peripheral
-	RGU_RESET_INDEX resetIdx = i2c ? I2C1_RST : I2C1_RST;
+	RGU_RESET_INDEX resetIdx = i2c ? I2C1_RST : I2C0_RST;
 	rgu_trigger_reset(resetIdx);
 	while (rgu_reset_active(resetIdx)) {}
 

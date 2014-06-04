@@ -20,7 +20,7 @@ typedef struct {
 	HW_RW TXMODE;
 	HW_RW RXMODE;
 	HW_UU padding[1010];
-} I2S_STRUCT;
+} __attribute__((aligned(4))) I2S_STRUCT;
 
 #define I2S ((I2S_STRUCT*)(0x400A2000))
 

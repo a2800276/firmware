@@ -45,7 +45,7 @@ typedef struct {
 	HW_RO DSCADDR;   //Current host descriptor address
 	HW_RO BUFADDR;   //Current buffer descriptor address
   HW_RW DATA;      //Data from here
-} __attribute__((packed)) SDMMC_STRUCT;
+} __attribute__((aligned(4))) SDMMC_STRUCT;
 
 #define SDMMC_HW ((SDMMC_STRUCT*)(0x40004000))
 

@@ -8,7 +8,7 @@
 typedef struct {	// a pin group
 	HW_RW SFS[20];			//20 pins per pin group
 	HW_UU unused1[12];		//padding to make size = 0x80
-} __attribute__((packed)) SCU_PIN_GROUP;
+} __attribute__((aligned(4))) SCU_PIN_GROUP;
 
 typedef struct {
 	SCU_PIN_GROUP GROUP[0x10];	//pin group 0 to f
@@ -24,7 +24,7 @@ typedef struct {
 	HW_RW SDDELAY;
 	HW_UU unused5[0x1f];	//skip to 0xe00
 	HW_RW PINTSEL[2];
-} __attribute__((packed)) SCU_STRUCT;
+} __attribute__((aligned(4))) SCU_STRUCT;
 
 #define SCU ((SCU_STRUCT*)(0x40086000))
 
@@ -45,6 +45,9 @@ void scu_set_pin_slew_rate(uint8_t group, uint8_t idx, bool fast);
 void scu_enable_pin_in_buffer(uint8_t group, uint8_t idx, bool enable);
 
 void scu_enable_pin_glitch_filter(uint8_t group, uint8_t idx, bool enable);
+
+/** convenience for common pin settings */
+void scu_set_pin(uint8_t group, uint8_t idx, uint8_t mode, bool pullup, bool pulldown, bool hs_slew, bool in_buffer, bool glitch_filter);
 
 /** strength: 0 (weakest) to 3 (strongest) - only on pins:
 P1_17, P2_3, P2_4, P2_5, P8_0, P8_1, P8_2, PA_1, PA_2, PA_3 */

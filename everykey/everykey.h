@@ -17,6 +17,7 @@
 #include "mcu/i2c.h"
 #include "mcu/i2s.h"
 #include "mcu/sd.h"
+#include "mcu/eth.h"
 
 #include "utils/utils.h"
 #include "utils/endian.h"

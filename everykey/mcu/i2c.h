@@ -41,7 +41,7 @@ typedef struct {
 	HW_RW MASK2;	//I2C Slave address mask register 2
 	HW_RW MASK3;	//I2C Slave address mask register 3
 	HW_UU PADDING[64496];	//padding from I2C0 to I2C1
-} I2C_STRUCT;
+} __attribute__((aligned(4))) I2C_STRUCT;
 
 /** peripheral base address. Padding allows to use I2C[0] or I2C[1]. */
 #define I2C ((I2C_STRUCT*)(0x400A1000))

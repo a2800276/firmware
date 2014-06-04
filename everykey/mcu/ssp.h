@@ -14,7 +14,7 @@ typedef struct {
 	HW_RO MIS;
 	HW_RW ICR;
 	HW_RW DMACR;
-} __attribute__((packed)) SSP_STRUCT;
+} __attribute__((aligned(4))) SSP_STRUCT;
 
 #define SSP0_HW ((SSP_STRUCT*)(0x40083000))
 #define SSP1_HW ((SSP_STRUCT*)(0x400C5000))
