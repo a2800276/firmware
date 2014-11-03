@@ -18,6 +18,10 @@
 #include "mcu/i2s.h"
 #include "mcu/sd.h"
 #include "mcu/eth.h"
+#include "mcu/romerr.h"
+#include "mcu/romusb.h"
+#include "mcu/usb.h"
+#include "mcu/usart.h"
 
 #include "utils/utils.h"
 #include "utils/endian.h"

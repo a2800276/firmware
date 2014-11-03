@@ -5,6 +5,7 @@
 #include "mcu/clocks.h"
 #include "mcu/i2c.h"
 #include "mcu/i2s.h"
+#include "mcu/usart.h"
 #include "peripherals/tlv320aic3100.h"
 #include "peripherals/lan8720a.h"
 #include "utils/utils.h"
@@ -154,4 +155,66 @@ void ethernet_off() {
 	eth_shutdown();
 //	write_pin(ETH_POWER_EN_PIN, false);
 	write_pin(ETH_NRST_PIN, false);
+}
+
+/* WS2812B interface:
+LEDs are daisy-chained. After a reset (data low for at least 50us),
+color values are transferred. Each LED consumes 24 bits (8 bits G,R,B each, MSB first)
+and forwards all remaining bits to the next LED.
+A 0 is encoded as a high pulse (350ns+-150ns) and a low pulse (900ns+-150ns)
+A 1 is encoded as a high pulse (900ns+-150ns) and a low pulse (350ns+-150ns)
+
+A bit clock of 312.5ns (3.2MBaud) with 4 uart bits per LED bit come close to these values, well within tolerances.
+
+We operate in synchronous master mode (to disable start and stop bits),
+but don't use the clock pin. Each LED bit is encoded into 4 UART bits.
+We encode 2 LED bits into one UART character, resulting in a character length of 6 bits.
+
+LPC sends LSB first, resulting in the following encoding:
+LED bits		UART character
+00					00010001
+01					01110001
+10					00010111
+11					01110111
+*/
+
+
+void ledstripe_on() {
+	usart_configure_pin(USART0_TXD_GROUP, USART0_TXD_IDX, USART0_TXD_MODE, false, true);
+	usart_configure_pin(USART0_RXD_GROUP, USART0_RXD_IDX, USART0_RXD_MODE, true, true);
+	usart_configure_pin(USART0_UCLK_GROUP, USART0_UCLK_IDX, USART0_UCLK_MODE, false, true);
+	write_pin(PORT_5V_EN_PIN, true);
+	usart_init_sync_master(0, 8, 3200000, 16);
+}
+
+void ledstripe_off() {
+	write_pin(PORT_5V_EN_PIN, false);
+}
+
+void ledstripe_sendRGB(uint8_t* rgb, uint16_t numLEDs) {
+		uint8_t numEmpty = 50;
+		uint8_t buf[numEmpty + 12*numLEDs];
+		uint16_t i;
+		for (i=0; i < numEmpty; i++) {
+			buf[i] = 0x00;
+		}
+		uint8_t lookup[] = {0x11, 0x71, 0x17, 0x77};
+		for (i=0; i < numLEDs; i++) {
+			uint8_t r = rgb[3*i];
+			uint8_t g = rgb[3*i+1];
+			uint8_t b = rgb[3*i+2];
+			buf[numEmpty + 12*i+ 0] = lookup[(g >> 6) & 0x03];
+			buf[numEmpty + 12*i+ 1] = lookup[(g >> 4) & 0x03];
+			buf[numEmpty + 12*i+ 2] = lookup[(g >> 2) & 0x03];
+			buf[numEmpty + 12*i+ 3] = lookup[(g     ) & 0x03];
+			buf[numEmpty + 12*i+ 4] = lookup[(r >> 6) & 0x03];
+			buf[numEmpty + 12*i+ 5] = lookup[(r >> 4) & 0x03];
+			buf[numEmpty + 12*i+ 6] = lookup[(r >> 2) & 0x03];
+			buf[numEmpty + 12*i+ 7] = lookup[(r     ) & 0x03];
+			buf[numEmpty + 12*i+ 8] = lookup[(b >> 6) & 0x03];
+			buf[numEmpty + 12*i+ 9] = lookup[(b >> 4) & 0x03];
+			buf[numEmpty + 12*i+10] = lookup[(b >> 2) & 0x03];
+			buf[numEmpty + 12*i+11] = lookup[(b     ) & 0x03];
+		}
+		usart_write_sync(0, buf, 12*numLEDs+numEmpty);
 }

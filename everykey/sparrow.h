@@ -146,8 +146,60 @@ required by the generic library functions should go to board.h */
 #define ETH_NINT_PIN P3_1_AS_GPIO_5_8
 #define ETH_NRST_PIN P9_5_AS_GPIO_5_18
 
+// Sparrow UART/USART pins
 
-// other settings
+#define USART0_TXD_GROUP  6
+#define USART0_TXD_IDX    4
+#define USART0_TXD_MODE   2
+#define USART0_RXD_GROUP  6
+#define USART0_RXD_IDX    5
+#define USART0_RXD_MODE   2
+#define USART0_UCLK_GROUP 2
+#define USART0_UCLK_IDX   2
+#define USART0_UCLK_MODE  1
+
+#define UART1_TXD_GROUP   5
+#define UART1_TXD_IDX     6
+#define UART1_TXD_MODE    4
+#define UART1_RXD_GROUP   5
+#define UART1_RXD_IDX     7
+#define UART1_RXD_MODE    4
+#define UART1_CTS_GROUP   5
+#define UART1_CTS_IDX     4
+#define UART1_CTS_MODE    4
+#define UART1_RTS_GROUP   5
+#define UART1_RTS_IDX     2
+#define UART1_RTS_MODE    4
+
+#define USART2_TXD_GROUP  2
+#define USART2_TXD_IDX   10
+#define USART2_TXD_MODE   2
+#define USART2_RXD_GROUP  2
+#define USART2_RXD_IDX   11
+#define USART2_RXD_MODE   2
+#define USART2_UCLK_GROUP 2
+#define USART2_UCLK_IDX  12
+#define USART2_UCLK_MODE  7
+#define USART2_DIR_GROUP  2
+#define USART2_DIR_IDX   13
+#define USART2_DIR_MODE   7
+
+#define USART3_TXD_GROUP  4
+#define USART3_TXD_IDX    1
+#define USART3_TXD_MODE   6
+#define USART3_RXD_GROUP  4
+#define USART3_RXD_IDX    2
+#define USART3_RXD_MODE   6
+#define USART3_UCLK_GROUP 4
+#define USART3_UCLK_IDX   0
+#define USART3_UCLK_MODE  6
+#define USART3_DIR_GROUP  4
+#define USART3_DIR_IDX    4
+#define USART3_DIR_MODE   6
+#define USART3_BAUD_GROUP 4
+#define USART3_BAUD_IDX   3
+#define USART3_BAUD_MODE  6
+
 
 #define SPARROW_I2S 0
 
@@ -191,7 +243,15 @@ void ethernet_on();
 /** power off ethernet block */
 void ethernet_off();
 
+// ----------------------------------------------------------------------
+// --- LED STRIPE (WS2812Bs connected to USART0 via 5V level shifter) ---
+// ----------------------------------------------------------------------
 
+void ledstripe_on();
+/** turns on led stripe */
+
+/** turns off led stripe */
+void ledstripe_off();
 
 #ifdef __cplusplus
 }

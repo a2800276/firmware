@@ -421,6 +421,13 @@ void clock_set_xtal_core_freq(uint8_t n, uint8_t d);
 @param on on or off */
 void clock_enable(CCU_BRANCH_CLOCK clock, bool on);
 
+/** turns a branch clock on or off
+@param clock clock to modify
+@param on on or off
+@param autoen autoen feature
+@param wakeup wakeup feature */
+void clock_enable_opts(CCU_BRANCH_CLOCK clock, bool on, bool autoen, bool wakeup);
+
 /** turns a branch clock auto-AHB-disable feature on or off
 @param clock clock to modify
 @param on on or off */

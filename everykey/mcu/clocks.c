@@ -105,9 +105,15 @@ void clock_set_xtal_core_freq(uint8_t n, uint8_t d) {
 }
 
 void clock_enable(CCU_BRANCH_CLOCK clock, bool on) {
+	clock_enable_opts(clock, on, true, true);
+}
+
+void clock_enable_opts(CCU_BRANCH_CLOCK clock, bool on, bool autoen, bool wakeup) {
 	HW_RW* cfg = &(((HW_RW*)CCU1_HW)[2*clock+64]);
-	if (on) *cfg |= CCU_RUN;
-	else *cfg &= ~CCU_RUN;
+	uint32_t val = 	on ?
+		(CCU_RUN | (autoen ? CCU_AUTO : 0) | (wakeup ? CCU_WAKEUP : 0)) :
+		0;
+	*cfg = val;
 }
 
 void clock_set_auto(CCU_BRANCH_CLOCK clock, bool on) {
