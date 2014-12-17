@@ -178,43 +178,67 @@ LED bits		UART character
 11					01110111
 */
 
+static uint8_t* ledstripe_buffer = NULL;
+static uint16_t ledstripe_idx = 0;
+static uint16_t ledstripe_buffer_len;
 
-void ledstripe_on() {
+void DEBUG(bool on);
+
+void ledstripe_refill(uint8_t idx) {
+	if (!ledstripe_buffer) return;
+	int16_t remaining = ledstripe_buffer_len-ledstripe_idx;
+	if (remaining < 1) return;
+
+	uint16_t sent = usart_write_avail(LEDSTRIPE_USART_IDX, &(ledstripe_buffer[ledstripe_idx]), remaining);
+	DEBUG(sent > 0);
+	ledstripe_idx += sent;
+}
+
+void ledstripe_on(uint16_t num_leds, uint8_t* in_ledstripe_buffer) {
+	ledstripe_buffer = in_ledstripe_buffer;
+	ledstripe_buffer_len = LEDSTRIPE_BUFFER_CAPACITY(num_leds);
+	ledstripe_idx = 0;
 	usart_configure_pin(USART0_TXD_GROUP, USART0_TXD_IDX, USART0_TXD_MODE, false, true);
 	usart_configure_pin(USART0_RXD_GROUP, USART0_RXD_IDX, USART0_RXD_MODE, true, true);
 	usart_configure_pin(USART0_UCLK_GROUP, USART0_UCLK_IDX, USART0_UCLK_MODE, false, true);
 	write_pin(PORT_5V_EN_PIN, true);
-	usart_init_sync_master(0, 8, 3200000, 16);
+	usart_init_sync_master(LEDSTRIPE_USART_IDX, 8, 3200000, 16, USART_FCR_RXTRIGLVL_8, NULL, ledstripe_refill, NULL);
 }
 
 void ledstripe_off() {
 	write_pin(PORT_5V_EN_PIN, false);
+	ledstripe_buffer = NULL;
+	ledstripe_buffer_len = 0;
 }
 
-void ledstripe_sendRGB(uint8_t* rgb, uint16_t numLEDs) {
-		uint8_t numEmpty = 50;
-		uint8_t buf[numEmpty + 12*numLEDs];
-		uint16_t i;
-		for (i=0; i < numEmpty; i++) {
-			buf[i] = 0x00;
-		}
-		uint8_t lookup[] = {0x11, 0x71, 0x17, 0x77};
-		for (i=0; i < numLEDs; i++) {
-			uint8_t r = rgb[3*i];
-			uint8_t g = rgb[3*i+1];
-			uint8_t b = rgb[3*i+2];
-			buf[numEmpty + 12*i+ 0] = lookup[(g >> 6) & 0x03];
-			buf[numEmpty + 12*i+ 1] = lookup[(g >> 4) & 0x03];
-			buf[numEmpty + 12*i+ 2] = lookup[(g >> 2) & 0x03];
-			buf[numEmpty + 12*i+ 3] = lookup[(g     ) & 0x03];
-			buf[numEmpty + 12*i+ 4] = lookup[(r >> 6) & 0x03];
-			buf[numEmpty + 12*i+ 5] = lookup[(r >> 4) & 0x03];
-			buf[numEmpty + 12*i+ 6] = lookup[(r >> 2) & 0x03];
-			buf[numEmpty + 12*i+ 7] = lookup[(r     ) & 0x03];
-			buf[numEmpty + 12*i+ 8] = lookup[(b >> 6) & 0x03];
-			buf[numEmpty + 12*i+ 9] = lookup[(b >> 4) & 0x03];
-			buf[numEmpty + 12*i+10] = lookup[(b >> 2) & 0x03];
-			buf[numEmpty + 12*i+11] = lookup[(b     ) & 0x03];
-		}
-		usart_write_sync(0, buf, 12*numLEDs+numEmpty);
+void ledstripe_sendRGB(const uint8_t* rgb, const uint16_t* reorder) {
+	if (!ledstripe_buffer) return;
+	uint8_t lookup[] = {0x11, 0x71, 0x17, 0x77};
+	uint16_t num_leds = LEDSTRIPE_LED_COUNT(ledstripe_buffer_len);
+	uint16_t i;
+	for (i = 0; i < LEDSTRIPE_BREAK_SIZE; i++) {
+		ledstripe_buffer[i] = 0;	
+	}
+	for (i=0; i < num_leds; i++) {
+		uint16_t pixIdx = (reorder) ? reorder[i] : i;
+		uint8_t r = rgb[3*pixIdx];
+		uint8_t g = rgb[3*pixIdx+1];
+		uint8_t b = rgb[3*pixIdx+2];
+		ledstripe_buffer[LEDSTRIPE_BREAK_SIZE + 12*i+ 0] = lookup[(g >> 6) & 0x03];
+		ledstripe_buffer[LEDSTRIPE_BREAK_SIZE + 12*i+ 1] = lookup[(g >> 4) & 0x03];
+		ledstripe_buffer[LEDSTRIPE_BREAK_SIZE + 12*i+ 2] = lookup[(g >> 2) & 0x03];
+		ledstripe_buffer[LEDSTRIPE_BREAK_SIZE + 12*i+ 3] = lookup[(g     ) & 0x03];
+		ledstripe_buffer[LEDSTRIPE_BREAK_SIZE + 12*i+ 4] = lookup[(r >> 6) & 0x03];
+		ledstripe_buffer[LEDSTRIPE_BREAK_SIZE + 12*i+ 5] = lookup[(r >> 4) & 0x03];
+		ledstripe_buffer[LEDSTRIPE_BREAK_SIZE + 12*i+ 6] = lookup[(r >> 2) & 0x03];
+		ledstripe_buffer[LEDSTRIPE_BREAK_SIZE + 12*i+ 7] = lookup[(r     ) & 0x03];
+		ledstripe_buffer[LEDSTRIPE_BREAK_SIZE + 12*i+ 8] = lookup[(b >> 6) & 0x03];
+		ledstripe_buffer[LEDSTRIPE_BREAK_SIZE + 12*i+ 9] = lookup[(b >> 4) & 0x03];
+		ledstripe_buffer[LEDSTRIPE_BREAK_SIZE + 12*i+10] = lookup[(b >> 2) & 0x03];
+		ledstripe_buffer[LEDSTRIPE_BREAK_SIZE + 12*i+11] = lookup[(b     ) & 0x03];
+	}
+//	usart_write_sync(LEDSTRIPE_USART_IDX, ledstripe_buffer, ledstripe_buffer_len);
+
+	ledstripe_idx = 0;
+	ledstripe_refill(/*LEDSTRIPE_USART_IDX*/99);
 }

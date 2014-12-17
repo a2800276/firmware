@@ -1,37 +1,44 @@
 #ifndef _USART_
 #define _USART_
 
-/** USART 0/2/3 */
+/** USART 0/2/3, UART 1 */
 
 #include "../core/types.h"
 
 typedef struct {
-  HW_RW RBR_THR_DLL;   //Receiver buffer register (read, DLAB=0),
+  HW_RW RBR_THR_DLL;   //0x00: Receiver buffer register (read, DLAB=0),
                        //Transmit holding register (write, DLAB=0),
                        //Divisor Latch LSB (rw, DLAB=1)
-  HW_RW DLM_IER;       //Divisor Latch MSB (rw, DLAB=1),
+  HW_RW DLM_IER;       //0x04: Divisor Latch MSB (rw, DLAB=1),
                        //Interrupt enable register (rw, DLAB=0)
-  HW_UU IIR_FCR;       //Interrupt ID register (read),
+  HW_UU IIR_FCR;       //0x08: Interrupt ID register (read),
                        //FIFO control register (write)
-  HW_RW LCR;           //Line control register
-  HW_UU reserved1;
-  HW_RO LSR;           //Line status register
-  HW_UU reserved2;
-  HW_RW SCR;           //Scratch pad register
-  HW_RW ACR;           //Auto-baud control register
-  HW_RW ICR;           //IrDA control register (UART3 only)
-  HW_RW FDR;           //Fractional divider register
-  HW_RW OSR;           //Oversampling register
+  HW_RW LCR;           //0x0c: Line control register
+  HW_RW MCR;           //0x10: Modem control register (UART1 only)
+  HW_RO LSR;           //0x14: Line status register
+  HW_RO MSR;           //0x18: Modem status register (UART1 only)
+  HW_RW SCR;           //0x1c: Scratch pad register
+  HW_RW ACR;           //0x20: Auto-baud control register
+  HW_RW ICR;           //0x24: IrDA control register (UART3 only)
+  HW_RW FDR;           //0x28: Fractional divider register
+  HW_RW OSR;           //0x2c: Oversampling register (UART0/2/3 only)
   HW_UU reserved3[4];
-  HW_RW HDEN;          //Half-duplex enable register
+  HW_RW HDEN;          //0x40: Half-duplex enable register (UART0/2/3 only)
   HW_UU reserved4;
-  HW_RW SCICTRL;       //Smart card interface control register
-  HW_RW RS485CTRL;     //RS485 control register
-  HW_RW RS485ADRMATCH; //RS485 address match
-  HW_RW RS485DLY;      //RS485 direction control delay
-  HW_RW SYNCCTRL;      //Synchronous control register
-  HW_RW TER;           //Transmit enable register
+  HW_RW SCICTRL;       //0x48 Smart card interface control register (UART0/2/3 only)
+  HW_RW RS485CTRL;     //0x4c: RS485 control register
+  HW_RW RS485ADRMATCH; //0x50: RS485 address match
+  HW_RW RS485DLY;      //0x54: RS485 direction control delay
+  HW_RW SYNCCTRL;      //0x58: Synchronous control register (UART0/2/3 only)
+  HW_RW TER;           //0x5c: Transmit enable register
 } __attribute__((aligned(4))) USART_STRUCT;
+
+typedef enum {
+  USART_IER_RBRIE          = 0x01, //Receiver buffer ready interrupt enable
+  USART_IER_THREIE         = 0x02, //Transmitter holding register empty interrupt enable
+  USART_IER_RXIE           = 0x04, //RX line interrupt enable (line status/errors)
+  USART_IER_ABEOINTEN      = 0x100 //Auto-baud interrupt enable
+} USART_IER_VALUES;
 
 typedef enum {
   USART_FCR_FIFOEN         = 0x01, //FIFO enable. 1 for operation. Transition clears FIFOs.
@@ -72,7 +79,6 @@ typedef enum {
   USART_LSR_TEMT           = 0x040, //Transmitter empty
   USART_LSR_RXFE           = 0x080, //Error in RX FIFO
   USART_LSR_TXERR          = 0x100  //NACK in smart card T=0 mode
-
 } USART_LSR_VALUES;
 
 typedef enum {
@@ -88,6 +94,7 @@ typedef enum {
 
 //Unfortunately, base addresses are not evenly spaced
 #define USART0_HW ((USART_STRUCT*)(0x40081000))
+#define UART1_HW  ((USART_STRUCT*)(0x40082000))
 #define USART2_HW ((USART_STRUCT*)(0x400C1000))
 #define USART3_HW ((USART_STRUCT*)(0x400C2000))
 
@@ -96,18 +103,57 @@ extern "C" {
 #endif
 
 //API
+typedef enum {
+  UART_PARITY_NONE = 0x00,
+  UART_PARITY_ODD = 0x08,
+  UART_PARITY_EVEN = 0x18,
+  UART_PARITY_ONE = 0x28,
+  UART_PARITY_ZERO = 0x38
+} UART_PARITY;
+
+typedef void (*UART_receive_callback)(uint8_t uart);
+
+//error is an or-ed bitfield of  USART_LSR_OE, USART_LSR_PE, USART_LSR_FE and USART_LSR_BI
+typedef void (*UART_error_callback)(uint8_t uart, uint8_t error_bitfield);
+
+typedef void (*UART_sent_callback)(uint8_t uart);
 
 /** inits the given USART as a synchronous master. No start or stop bits.
 @param idx USART hardware index (0, 2 or 3)
-@param pbc bits per character
+@param bpc bits per character
 @param baud serial speed in bps. Will try to get near that. Assumes MAIN_CLOCK_MHZ.
 @param oversamling (uart clocks per bit clock) in 1/8 steps. Allowed: 8-128. (=Oversampling 1-16). Default 128.
+@param trigLvl trigger level for rx. One of USART_FCR_RXTRIGLVL_xx values
+@param receive_cb callback on receive data. Should read_avail. Called from interrupt, be quick.
+@param sent_cb callback on sent data. Should refill buffer. Called from interrupt, be quick.
+@param error_cb callback on error. Should handle somehow. Called from interrupt, be quick.
 @discussion Sync master mode is not only useful for USART communication but may be used
-as a buffered, fine-grained output. Reducing Oversampling may be useful for finer timing fidelity.  */
-void usart_init_sync_master(uint8_t idx, uint8_t bpc, uint32_t baud, uint8_t oversampling);
+as a buffered, fine-grained output. Reducing Oversampling may be useful for finer timing fidelity. 
+Pins must be configured manually. */
+void usart_init_sync_master(uint8_t idx, uint8_t bpc, uint32_t baud, uint8_t oversampling,
+                            uint8_t trigLvl, UART_receive_callback receive_cb,
+                            UART_sent_callback sent_cb, UART_error_callback error_cb);
+
+/** inits the given USART 
+@param idx USART hardware index (0-3)
+@param bpc bits per character
+@param baud serial speed in bps. Will try to get near that. Assumes MAIN_CLOCK_MHZ.
+@param parity parity
+@param longstop if true, use 2 stop bits (1.5 for 5bpc), false for 1 stop bit
+@param oversamling (uart clocks per bit clock) in 1/8 steps. Allowed: 8-128. (=Oversampling 1-16). Default 128.
+@param trigLvl trigger level for rx. One of USART_FCR_RXTRIGLVL_xx values
+@param receive_cb callback on receive data. Should read_avail. Called from interrupt, be quick.
+@param sent_cb callback on sent data. Should refill buffer. Called from interrupt, be quick.
+@param error_cb callback on error. Should handle somehow. Called from interrupt, be quick.
+@discussion Oversampling may be useful for finer timing fidelity.
+Pins must be configured manually. */
+void usart_init_async(uint8_t idx, uint8_t bpc, uint32_t baud, UART_PARITY parity, bool longstop,
+                      uint8_t oversampling, uint8_t trigLvl,
+                      UART_receive_callback receive_cb, UART_sent_callback sent_cb,
+                      UART_error_callback error_cb);
 
 /** turns off the given USART
-@param idx USART hardware index (0, 2 or 3) */
+@param idx USART hardware index (0-3) */
 void usart_shutdown(uint8_t idx);
 
 /** configures a pin to use with a USART. Should be called prior to using the pin
@@ -119,11 +165,25 @@ void usart_shutdown(uint8_t idx);
 void usart_configure_pin(uint8_t group, uint8_t idx, uint8_t mode, bool input, bool fast);
 
 /** sends a byte buffer synchronously (does not refer to UART/USART, blocks while sending).
-@param idx USART hardware index (0, 2 or 3)
+THIS METHOD IS HIGHLY INEFFICIENT AND SHOULD NOT BE USED - USE sent_cb / write_avail INSTEAD.
+@param idx USART hardware index (0-3)
 @param buf buffer containing characters (LSB first)
 @param len number of characters to send. */
 void usart_write_sync(uint8_t idx, uint8_t* buf, uint16_t len);
 
+/** reads available bytes from an UART. Does not block.
+@param idx UART/USART hardware index (0-3)
+@param buf buffer to hold results. If NULL, results will be discarded
+@param maxlen maximum number of bytes to read
+@return number of bytes actually read */
+uint16_t usart_read_avail(uint8_t idx, uint8_t* buf, uint16_t maxlen);
+
+/** writes available bytes to an UART. Does not block.
+@param idx UART/USART hardware index (0-3)
+@param buf buffer containing data to write. If NULL, zero bytes will be written
+@param maxlen maximum number of bytes to write
+@return number of bytes actually written */
+uint16_t usart_write_avail(uint8_t idx, uint8_t* buf, uint16_t maxlen);
 
 #ifdef __cplusplus
 }

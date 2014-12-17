@@ -247,11 +247,27 @@ void ethernet_off();
 // --- LED STRIPE (WS2812Bs connected to USART0 via 5V level shifter) ---
 // ----------------------------------------------------------------------
 
-void ledstripe_on();
-/** turns on led stripe */
+#define LEDSTRIPE_USART_IDX 0
+#define LEDSTRIPE_BREAK_SIZE 50
+#define LEDSTRIPE_LED_COUNT(bufferlen) (((bufferlen)-LEDSTRIPE_BREAK_SIZE) / 12)
+
+/** helper macro to calculate the needed ledstripe buffer length from the number of LEDs */
+#define LEDSTRIPE_BUFFER_CAPACITY(numleds) ((numleds)*12 + LEDSTRIPE_BREAK_SIZE)
+
+/** turns on led stripe 
+@param num_leds number of LEDs
+@param in_ledstripe_buffer user-supplied work buffer. Must be valid throughout the ledstripe operation.
+Use LEDSTRIPE_BUFFER_CAPACITY to calculate the required minimum buffer size. 
+*/
+void ledstripe_on(uint16_t num_leds, uint8_t* in_ledstripe_buffer);
 
 /** turns off led stripe */
 void ledstripe_off();
+
+/** Starts sending a frame to the LED stripe. 
+@param rgb a rgb bitmap. Must not be NULL.
+@param reorder a pixel reordering lookup. Optional, specify NULL to send rgb in bitmap order. */
+void ledstripe_sendRGB(const uint8_t* rgb, const uint16_t* reorder);
 
 #ifdef __cplusplus
 }
