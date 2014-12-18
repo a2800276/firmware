@@ -16,7 +16,6 @@ UART_CONFIG uartconf[4];
 
 const USART_STRUCT* USART_LOOKUP[4] = { USART0_HW, UART1_HW, USART2_HW, USART3_HW };
 
-
 void uart_interrupt_handler(uint8_t idx, USART_STRUCT* hw) {
   nvic_clear_interrupt_pending(NVIC_USART0 + idx);
   uint32_t iir = hw->IIR_FCR;
@@ -60,6 +59,20 @@ void usart3_handler(void) {
 
 
 void usart_find_divisor(uint32_t clock, uint32_t baud, uint8_t oversampling, uint16_t* outLatch, uint8_t* outDivMul, uint8_t* outDivAdd) {
+    /* There seems to be something wrong with the clock calculation. The generic divisor algorithm
+    seems to yield values matching the description in the datasheet in most cases (overflow
+    situations need to be checked). However, these values seem not to work in the real application.
+    This needs to be investigated further. As a workaround, we tweak values manually and return
+    working dividers for common, known settings. */
+
+    //Workaround: Return some precomputed values for common settings
+    if ((clock == 180000000) && (baud == 115200) && (oversampling == 128)) {
+      if (outLatch) *outLatch = 50;//65
+      if (outDivMul) *outDivMul = 2;
+      if (outDivAdd) *outDivAdd = 1;
+      return;
+    }
+
     /* Approach: Test all fractional values, find lower and upper latch for each,
      calculate clock from ideal baud rate, remember best result. Disable fractional if divAdd = 0
      oversampling has unit 1/8
@@ -294,7 +307,8 @@ void usart_init_async(uint8_t idx, uint8_t bpc, uint32_t baud, UART_PARITY parit
   hw->DLM_IER = USART_IER_RBRIE | USART_IER_THREIE | USART_IER_RXIE;
 
   uint16_t wls = bpc - 5;
-  hw->LCR = wls | parity;
+  uint16_t stop = longstop ? 0x04 : 0x00;
+  hw->LCR = wls | stop | parity;
   hw->ACR = 0;             //Default: no auto baud rate
   if (idx == 3) {
     hw->ICR = 0;           //Disable IrDA (USART3 only)
@@ -384,10 +398,11 @@ uint16_t usart_read_avail(uint8_t idx, uint8_t* buf, uint16_t maxlen) {
   int i=0;
   while (((hw->LSR) & USART_LSR_RDR) && (i < maxlen)) {
     if (buf) {
-      buf[i++] = hw->RBR_THR_DLL;
+      buf[i] = hw->RBR_THR_DLL;
     } else {
       hw->RBR_THR_DLL;
     }
+    i++;
   }
   return i;
 }
@@ -398,10 +413,11 @@ uint16_t usart_write_avail(uint8_t idx, uint8_t* buf, uint16_t maxlen) {
   int i=0;
   while (((hw->LSR) & USART_LSR_THRE) && (i < maxlen)) {
     if (buf) {
-      hw->RBR_THR_DLL = buf[i++];
+      hw->RBR_THR_DLL = buf[i];
     } else {
       hw->RBR_THR_DLL = 0;
     }
+    i++;
   }
   return i;
 }

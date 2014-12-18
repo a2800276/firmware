@@ -118,6 +118,8 @@ typedef void (*UART_error_callback)(uint8_t uart, uint8_t error_bitfield);
 
 typedef void (*UART_sent_callback)(uint8_t uart);
 
+/** FIXME: divider calculation is erroneous in some cases (see .c file) */
+
 /** inits the given USART as a synchronous master. No start or stop bits.
 @param idx USART hardware index (0, 2 or 3)
 @param bpc bits per character
