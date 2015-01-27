@@ -8,8 +8,8 @@
 10987654 32109876 54321098 76543210
 0<F><PT> 000<IDX> 000<MAJ> 000<MIN>
 
-PT: GPIO Port
 F: SCU function
+PT: GPIO Port
 IDX: GPIO index within port
 MAJ: Pin major (first number).
 MIN: Pin minor

@@ -70,7 +70,30 @@ void scu_set_i2c0_pinmode(bool enable, bool fastplus, bool glitch, bool longglit
 @param glitch true to enable glitch filter */
 void scu_set_clock_pin_mode(uint8_t idx, uint8_t func, bool pd, bool pu, bool hs, bool buf, bool glitch);
 
+typedef enum {
+	PIN_INTERRUPT_NONE          = 0,
+    PIN_INTERRUPT_RISING        = 1,
+    PIN_INTERRUPT_FALLING       = 2,
+    PIN_INTERRUPT_RISINGFALLING = 3,
+    PIN_INTERRUPT_HIGH          = 4,
+    PIN_INTERRUPT_LOW           = 5
+} PIN_INTERRUPT_MODE;
 
+/** enables one of eight pin-specific interrupt registers
+@param idx pin interrupt index (0-7) 
+@param port gpio port
+@param pin gpio pin
+@param mode trigger mode to set */
+void scu_enable_pin_interrupt(uint8_t idx, uint8_t port, uint8_t pin, PIN_INTERRUPT_MODE mode);
+
+/** disables one of eight pin-specific interrupt registers
+@param idx pin interrupt index (0-7)  */
+void scu_disable_pin_interrupt(uint8_t idx);
+
+/** clears rising and falling edge detection for edge-sensitive pins. For level-sensitive pins,
+this toggles the sensed level (LOW to HIGH, HIGH to LOW)
+@param idx pin interrupt index (0-7) */
+void scu_clear_edge_pin_interrupt(uint8_t idx);
 
 #ifdef __cplusplus
 }

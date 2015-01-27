@@ -6,6 +6,7 @@
 #include "mcu/i2c.h"
 #include "mcu/i2s.h"
 #include "mcu/usart.h"
+#include "mcu/ssp.h"
 #include "peripherals/tlv320aic3100.h"
 #include "peripherals/lan8720a.h"
 #include "utils/utils.h"
@@ -59,6 +60,19 @@ void sparrow_init() {
 	i2c_init(1, I2C_MODE_FAST);
 	//TODO: I2C1 might also be used as GPIOs
 
+	//SPI
+	scu_set_pin(SPI0_MISO_GROUP, SPI0_MISO_IDX, SPI0_MISO_MODE, false, false, true, true, true);
+	scu_set_pin(SPI0_MOSI_GROUP, SPI0_MOSI_IDX, SPI0_MOSI_MODE, false, false, true, false, true);
+	scu_set_pin(SPI0_SCK_GROUP, SPI0_SCK_IDX, SPI0_SCK_MODE, false, false, true, false, true);
+	scu_set_pin(SPI0_SSEL_GROUP, SPI0_SSEL_IDX, SPI0_SSEL_MODE, false, false, true, false, true);
+	
+	scu_set_pin(SPI1_MISO_GROUP, SPI1_MISO_IDX, SPI1_MISO_MODE, false, false, true, true, true);
+	scu_set_pin(SPI1_MOSI_GROUP, SPI1_MOSI_IDX, SPI1_MOSI_MODE, false, false, true, false, true);
+	scu_set_pin(SPI1_SCK_GROUP, SPI1_SCK_IDX, SPI1_SCK_MODE, false, false, true, false, true);
+	scu_set_pin(SPI1_SSEL_GROUP, SPI1_SSEL_IDX, SPI1_SSEL_MODE, false, false, true, false, true);
+
+
+
 	//I2S
 	i2s_configure_pin(I2S0_TX_MCLK_GROUP, I2S0_TX_MCLK_IDX, I2S0_TX_MCLK_MODE);
 	i2s_configure_pin(I2S0_TX_WS_GROUP, I2S0_TX_WS_IDX, I2S0_TX_WS_MODE);
@@ -109,6 +123,11 @@ void sparrow_init() {
 	set_digital_output(ETH_NRST_PIN);
 	write_pin(ETH_NRST_PIN, false);	//put into reset
 
+	//CC3000 WIFI
+	set_digital_output(CC3000_SW_EN_PIN);
+	write_pin(CC3000_SW_EN_PIN, false);
+	set_digital_input(CC3000_IRQ_PIN, false, false, true);
+
 }
 
 void audio_on() {
@@ -130,7 +149,7 @@ void audio_off() {
 
 void audio_play(uint8_t numChannels, uint8_t bitsPerSample, uint32_t sampleRate, I2S_PLAY_SAMPLE_CALLBACK cb) {
 	i2s_start_play(SPARROW_I2S, numChannels, bitsPerSample, sampleRate, cb);
-  tlv_configure(TLV_I2C_BUS);
+  	tlv_configure(TLV_I2C_BUS);
 
 	// tlv_set_clock_input(TLV_I2C_BUS);
 	// tlv_set_clock_src_bclk(TLV_I2C_BUS);
@@ -239,3 +258,22 @@ void ledstripe_sendRGB(const uint8_t* rgb, const uint16_t* reorder) {
 	ledstripe_idx = 0;
 	ledstripe_refill(LEDSTRIPE_USART_IDX);
 }
+
+void wifi_on() {
+	write_pin(CC3000_SW_EN_PIN, false);
+	delay(10000000);	
+	write_pin(WIFI_POWER_EN_PIN, true);
+	ssp_init(CC3000_SPI_HW, SSP_FRAMEFORMAT_SPI, 0, true, 8, 20);
+	write_pin(CC3000_SW_EN_PIN, true);
+	cc3000_init(CC3000_IRQ_PIN);
+}
+
+void wifi_off() {
+	wifi_shutdown();
+	write_pin(CC3000_SW_EN_PIN, false);
+	write_pin(WIFI_POWER_EN_PIN, false);
+
+}
+
+
+

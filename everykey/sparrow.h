@@ -7,6 +7,7 @@ required by the generic library functions should go to board.h */
 #include "core/types.h"
 #include "utils/simpleio.h"
 #include "mcu/i2s.h"
+#include "peripherals/cc3000.h"
 
 // -------------------------------
 // --- Board pins and settings ---
@@ -204,6 +205,44 @@ required by the generic library functions should go to board.h */
 #define SPARROW_I2S 0
 
 
+// SPI
+
+#define SPI0_MISO_GROUP 3
+#define SPI0_MISO_IDX   6
+#define SPI0_MISO_MODE  5
+#define SPI0_MOSI_GROUP 3
+#define SPI0_MOSI_IDX   7
+#define SPI0_MOSI_MODE  5
+#define SPI0_SCK_GROUP  3
+#define SPI0_SCK_IDX    3
+#define SPI0_SCK_MODE   2
+#define SPI0_SSEL_GROUP 3
+#define SPI0_SSEL_IDX   8
+#define SPI0_SSEL_MODE  5
+#define SPI0_IRQ_GROUP  4
+#define SPI0_IRQ_IDX    5
+#define SPI0_IRQ_MODE   0 /* PIN4_5 as GPIO 2_5 */
+
+#define SPI1_MISO_GROUP 1
+#define SPI1_MISO_IDX   3
+#define SPI1_MISO_MODE  5
+#define SPI1_MOSI_GROUP 1
+#define SPI1_MOSI_IDX   4
+#define SPI1_MOSI_MODE  5
+#define SPI1_SCK_GROUP  15
+#define SPI1_SCK_IDX    4
+#define SPI1_SCK_MODE   0
+#define SPI1_SSEL_GROUP 1
+#define SPI1_SSEL_IDX   5
+#define SPI1_SSEL_MODE  5
+
+// CC3000
+
+#define CC3000_SPI_HW      SSP1_HW
+#define CC3000_SW_EN_PIN   P4_10_AS_GPIO_5_14
+#define CC3000_IRQ_PIN     P1_0_AS_GPIO_0_4
+#define CC3000_IRQ_PIN_INTERRUPT_IDX 0
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -268,6 +307,15 @@ void ledstripe_off();
 @param rgb a rgb bitmap. Must not be NULL.
 @param reorder a pixel reordering lookup. Optional, specify NULL to send rgb in bitmap order. */
 void ledstripe_sendRGB(const uint8_t* rgb, const uint16_t* reorder);
+
+// -------------------
+// --- CC3000 Wifi ---
+// -------------------
+
+void cc3000_on();
+void cc3000_off();
+
+//can be used directly from cc3000.h
 
 #ifdef __cplusplus
 }

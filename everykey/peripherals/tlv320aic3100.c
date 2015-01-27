@@ -95,6 +95,7 @@ void tlv_configure(uint8_t i2c) {
 	//should be 0x88 but try 35->0x44 ******
 	tlv_write_register(i2c, 1, 40, 0x06); //HPL_DRIVER:      HPL gain 0dB, HPL not muted, high imp in PD, not done yet
 	tlv_write_register(i2c, 1, 41, 0x06); //HPR_DRIVER:      HPR gain 0dB, HPR not muted, high imp in PD, not done yet
+	uint8_t spk_analog_gain = 0;	//0 = 6bb, 1=12db, 2=18db, 3=24db - bits 3&4
 	tlv_write_register(i2c, 1, 42, 0x1c); //SPK_DRIVER:      Speaker gain 18 dB, not muted, not done
 
 	//Power up output drivers

@@ -1,4 +1,6 @@
 #include "scu.h"
+#include "gpio.h"
+#include "nvic.h"
 
 /* set pin function. See table 169 in user manual (UM10430) */
 void scu_set_pin_mode(uint8_t group, uint8_t idx, uint8_t mode) {
@@ -58,3 +60,39 @@ void scu_set_clock_pin_mode(uint8_t idx, uint8_t func, bool pd, bool pu, bool hs
 	SCU->SFSCLK[idx] =
 		(func &0x07) | (pd ? 0x8 : 0) | (pu ? 0 : 0x10) | (hs ? 0x20 : 0) | (buf ? 0x40 : 0) | (glitch ? 0x80 : 0);
 }
+
+void scu_enable_pin_interrupt(uint8_t idx, uint8_t port, uint8_t pin, PIN_INTERRUPT_MODE mode) {
+	scu_disable_pin_interrupt(idx);
+	if (idx < 8) {
+		uint8_t pintsel_idx = idx / 4;
+		uint8_t shift = (idx % 4) * 8;
+		uint32_t val = ((port << 5) | pin) << shift;
+		uint32_t mask = ~(0xff << shift);
+		SCU->PINTSEL[pintsel_idx] = (SCU->PINTSEL[pintsel_idx] & mask) | val;
+	} 
+	bool level = (mode == PIN_INTERRUPT_LOW) || (mode == PIN_INTERRUPT_HIGH) || (mode == PIN_INTERRUPT_NONE);
+	bool rising = (mode == PIN_INTERRUPT_RISING) || (mode == PIN_INTERRUPT_RISINGFALLING) ||
+	              (mode == PIN_INTERRUPT_HIGH) || (mode == PIN_INTERRUPT_LOW);
+	bool falling = (mode == PIN_INTERRUPT_FALLING) || (mode == PIN_INTERRUPT_RISINGFALLING) ||
+	               (mode == PIN_INTERRUPT_HIGH);
+	uint32_t mask = ~(1 << idx);
+	GPIO_INTERRUPT_HW->ISEL = (GPIO_INTERRUPT_HW->ISEL & mask) | ((level?1:0) << idx);
+	GPIO_INTERRUPT_HW->IENR = (GPIO_INTERRUPT_HW->IENR & mask) | ((rising?1:0) << idx);
+	GPIO_INTERRUPT_HW->IENF = (GPIO_INTERRUPT_HW->IENF & mask) | ((falling?1:0) << idx);
+	nvic_enable_interrupt(NVIC_PIN_INT0 + idx);
+}
+
+/** disables one of eight pin-specific interrupt registers
+@param idx interrupt index */
+void scu_disable_pin_interrupt(uint8_t idx) {
+	uint32_t mask = ~(1 << idx);
+	GPIO_INTERRUPT_HW->ISEL &= mask;
+	GPIO_INTERRUPT_HW->IENR &= mask;
+	GPIO_INTERRUPT_HW->IENF &= mask;
+	nvic_disable_interrupt(NVIC_PIN_INT0 + idx);
+}
+
+void scu_clear_edge_pin_interrupt(uint8_t idx) {
+	GPIO_INTERRUPT_HW->IST |= (1 << idx);
+}
+

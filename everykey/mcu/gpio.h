@@ -12,6 +12,21 @@ typedef struct {
 } __attribute__((aligned(4))) GPIO_W_STRUCT;
 
 typedef struct {
+    HW_RW ISEL;
+    HW_RW IENR;
+    HW_WO SIENR;
+    HW_WO CIENR;
+    HW_RW IENF;
+    HW_WO SIENF;
+    HW_WO CIENF;
+    HW_RW RISE;
+    HW_RW FALL;
+    HW_RW IST;
+} __attribute__((aligned(4))) GPIO_INTERRUPT_STRUCT; 
+
+#define GPIO_INTERRUPT_HW ((GPIO_INTERRUPT_STRUCT*)(0x40087000))
+
+typedef struct {
 	GPIO_B_STRUCT B[8];
 	HW_UU unused1[0x3c0];		//skip from 0x0100 to 0x1000
 	GPIO_W_STRUCT W[8];
@@ -47,6 +62,8 @@ void gpio_set_pin_dir(uint8_t port, uint8_t pin, PIN_DIR dir);
 bool gpio_read_digital_pin(uint8_t port, uint8_t pin);
 
 void gpio_write_digital_pin(uint8_t port, uint8_t pin, bool value);
+
+
 
 #ifdef __cplusplus
 }

@@ -14,8 +14,7 @@ uint16_t ssp_read_frame(SSP_STRUCT* hw);
 
 
 void ssp_init(SSP_STRUCT* hw, SSP_FRAMEFORMAT format, uint8_t spiMode, bool master,
-	int8_t framelength, uint16_t clockDivide,
-	uint16_t sselPin, uint16_t sckPin, uint16_t misoPin, uint16_t mosiPin) {
+	int8_t framelength, uint16_t clockDivide) {
 
 	if (!master) progfault(NOT_IMPLEMENTED);
 	if ((hw != SSP0_HW) && (hw != SSP1_HW)) progfault(ILLEGAL_ARGUMENT);
@@ -28,76 +27,11 @@ void ssp_init(SSP_STRUCT* hw, SSP_FRAMEFORMAT format, uint8_t spiMode, bool mast
 		clock_set_source(BASE_SSP0_CLK, true, CLKSRC_PLL1);
 		clock_enable(CLK_Mx_SSP0, true);
 		clock_enable(CLK_APB0_SSP0, true);
-
-		switch (sselPin) {
-		 	case 0x0100: scu_set_pin_mode(1,0,5); break;
-		 	case 0x0306: scu_set_pin_mode(3,6,2); break;
-		 	case 0x0308: scu_set_pin_mode(3,8,5); break;
-		 	case 0x0900: scu_set_pin_mode(9,0,7); break;
-		 	case 0x0f01: scu_set_pin_mode(15,1,2); break;
-		 	case 0xffff: break;
-			default: progfault(ILLEGAL_ARGUMENT);
-		}
-		switch (sckPin) {
-			case 0x0300: scu_set_pin_mode(3,0,4); break;
-			case 0x0303: scu_set_pin_mode(3,3,2); break;
-			case 0x0f00: scu_set_pin_mode(15,0,0); break;
-		 	case 0xffff: break;
-			default: progfault(ILLEGAL_ARGUMENT);
-		}
-		switch (misoPin) {
-			case 0x0101: scu_set_pin_mode(1,1,5); break;
-			case 0x0306: scu_set_pin_mode(3,6,5); break;
-			case 0x0307: scu_set_pin_mode(3,7,2); break;
-			case 0x0901: scu_set_pin_mode(9,1,7); break;
-			case 0x0f02: scu_set_pin_mode(15,2,2); break;
-		 	case 0xffff: break;
-			default: progfault(ILLEGAL_ARGUMENT);
-		}
-		switch (mosiPin) {
-			case 0x0102: scu_set_pin_mode(1,2,5); break;
-			case 0x0307: scu_set_pin_mode(3,7,5); break;
-			case 0x0308: scu_set_pin_mode(3,8,2); break;
-			case 0x0902: scu_set_pin_mode(9,2,7); break;
-			case 0x0f03: scu_set_pin_mode(15,3,2); break;
-		 	case 0xffff: break;
-			default: progfault(ILLEGAL_ARGUMENT);
-		}
 	} else {
 		clock_set_source(BASE_SSP1_CLK, true, CLKSRC_PLL1);
 		clock_enable(CLK_Mx_SSP1, true);
 		clock_enable(CLK_APB2_SSP1, true);
-		switch (sselPin) {
-		 	case 0x0105: scu_set_pin_mode(1,5,5); break;
-		 	case 0x0114: scu_set_pin_mode(1,20,1); break;
-		 	case 0x0f05: scu_set_pin_mode(15,5,2); break;
-		 	case 0xffff: break;
-			default: progfault(ILLEGAL_ARGUMENT);
-		}
-		switch (sckPin) {
-			case 0x0113: scu_set_pin_mode(1,19,1); break;
-			case 0x0f04: scu_set_pin_mode(15,4,0); break;
-		 	case 0xffff: break;
-			//TODO: CLK0 function 6 ****************
-			case 0x1000: progfault(NOT_IMPLEMENTED);
-			default: progfault(ILLEGAL_ARGUMENT);
-		}
-		switch (misoPin) {
-			case 0x0000: scu_set_pin_mode(0,0,1); break;
-			case 0x0103: scu_set_pin_mode(1,3,5); break;
-			case 0x0f06: scu_set_pin_mode(15,6,2); break;
-		 	case 0xffff: break;
-			default: progfault(ILLEGAL_ARGUMENT);
-		}
-		switch (mosiPin) {
-			case 0x0001: scu_set_pin_mode(0,1,1); break;
-			case 0x0104: scu_set_pin_mode(1,4,5); break;
-			case 0x0f07: scu_set_pin_mode(15,7,2); break;
-		 	case 0xffff: break;
-			default: progfault(ILLEGAL_ARGUMENT);
-		}
 	}
-
 
 	bool cpol = false;
 	bool cpha = false;

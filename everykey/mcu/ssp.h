@@ -59,21 +59,19 @@ typedef enum {
 extern "C" {
 #endif
 
-/** initializes a ssp module.
+/** initializes a ssp module. Pins must be configured separately.
+
 @param hw ssp peripheral to init
 @param format frame format: SPI, TI or Microwire
 @param spiMode transfer mode if format is SPI (0..3). Ignored otherwise.
 @param master set true to configure master role, false for slave
 @param framelength length of transfer units in bits (4..16)
 @param clockDivide bit clock rate in relation to the main (PLL1) frequency
-@param sselPin (hi byte: port major, low byte: port minor, major 16 = clocks, unused = 0xffff)
-@param sckPin (hi byte: port major, low byte: port minor, major 16 = clocks, unused = 0xffff)
-@param misoPin (hi byte: port major, low byte: port minor, major 16 = clocks, unused = 0xffff)
-@param mosiPin (hi byte: port major, low byte: port minor, major 16 = clocks, unused = 0xffff) */
+
+*/
 
 void ssp_init(SSP_STRUCT* hw, SSP_FRAMEFORMAT format, uint8_t spiMode, bool master,
-	int8_t framelength, uint16_t clockDivide,
-	uint16_t sselPin, uint16_t sckPin, uint16_t misoPin, uint16_t mosiPin);
+	int8_t framelength, uint16_t clockDivide);
 
 /** synchronus (blocking) SSP transfer, 8-bit buffer version.
 Only use for frame lengths of up to 8 bits.
