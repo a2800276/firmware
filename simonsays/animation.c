@@ -44,6 +44,10 @@ void anim_set_pixel(uint8_t x, uint8_t y, uint8_t r, uint8_t g, uint8_t b) {
 	bitmap[3*(width*y+x)+2] = b;
 }
 
+void anim_set_matrix(const uint8_t* buf) {
+	memcpy(bitmap, buf, 3*width*height);
+}
+
 void animfunc_fadedark() {
 	int i;
 	for (i = 0; i < width * height; i++) {

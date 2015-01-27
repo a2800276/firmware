@@ -158,10 +158,12 @@ void i2c_init(uint8_t i2c, I2C_MODE mode) {
 	//enable interrupt
 	nvic_enable_interrupt((i2c == 0) ? NVIC_I2C0 : NVIC_I2C1);
 
-	// reset peripheral
+	// reset peripheral - this seems to mess things up. TODO: Check why *****************
+/*
 	RGU_RESET_INDEX resetIdx = i2c ? I2C1_RST : I2C0_RST;
 	rgu_trigger_reset(resetIdx);
 	while (rgu_reset_active(resetIdx)) {}
+*/
 
 	//turn on I2C engine
 	I2C[i2c].CONSET = I2C_CONSET_I2EN;

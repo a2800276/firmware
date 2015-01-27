@@ -9,7 +9,6 @@
 #include "../sparrow.h"
 #include "../utils/simpleio.h"
 #include "../utils/utils.h"
-extern uint8_t status;
 
 #define SD_BLOCK_SIZE 0x200
 
@@ -337,7 +336,7 @@ typedef struct {
 
 SD_DMA_STRUCT sd_dma[1];
 
-bool sd_read_blocks(void* to, uint32_t start_block, uint32_t block_count, SD_CARD_INFO* info) {
+bool sd_read_blocks(void* to, uint32_t start_block, uint32_t block_count, SD_CARD_INFO* info, bool wait) {
   write_pin(LED1_PIN, true);
   if (block_count != 8) progfault(NOT_IMPLEMENTED);
 
@@ -353,7 +352,6 @@ bool sd_read_blocks(void* to, uint32_t start_block, uint32_t block_count, SD_CAR
   SD_CARD_STATE card_state = sd_get_card_state(info);
 
   if (card_state == SD_CARD_STATE_STBY) {  //standby: put into tran
-    status = 12;
     err = sd_cmd(
       SD_CMD_SELECT_CARD,
       info->rca << 16,
@@ -361,7 +359,6 @@ bool sd_read_blocks(void* to, uint32_t start_block, uint32_t block_count, SD_CAR
       &response,
       false);
       if (err != SD_CMD_ERR_OK) return false;
-      status = 13;
 
       //TODO: Do we need to test new state? We're optimistic right now...
   } else if (card_state != SD_CARD_STATE_TRAN) return false;  //wrong state
@@ -389,6 +386,10 @@ bool sd_read_blocks(void* to, uint32_t start_block, uint32_t block_count, SD_CAR
     &response,
     true);
 
+  if (!wait) {
+    return true;
+  }
+  
   while (sd_get_card_state(info) != SD_CARD_STATE_TRAN) {}
 
   return (err == SD_CMD_ERR_OK) ? true : false;

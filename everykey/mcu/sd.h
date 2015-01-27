@@ -159,8 +159,9 @@ bool sd_init_card(SD_CARD_INFO* info);
 @param start_block block to start reading (standard block size = 512 bytes)
 @param block_count number of blocks to read (standard block size = 512 bytes)
 @param info info block filled from successful sd_init_card().
+@param wait wait for completion
 @return success */
-bool sd_read_blocks(void* to, uint32_t start_block, uint32_t block_count, SD_CARD_INFO* info);
+bool sd_read_blocks(void* to, uint32_t start_block, uint32_t block_count, SD_CARD_INFO* info, bool wait);
 
 //raw property getters - may go later
 void sd_set_card_type(uint32_t type);

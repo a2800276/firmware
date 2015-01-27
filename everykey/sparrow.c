@@ -219,7 +219,7 @@ void ledstripe_on(uint16_t num_leds, uint8_t* in_ledstripe_buffer) {
 	usart_configure_pin(USART0_RXD_GROUP, USART0_RXD_IDX, USART0_RXD_MODE, true, true);
 	usart_configure_pin(USART0_UCLK_GROUP, USART0_UCLK_IDX, USART0_UCLK_MODE, false, true);
 	write_pin(PORT_5V_EN_PIN, true);
-	usart_init_sync_master(LEDSTRIPE_USART_IDX, 8, 3200000, 16, USART_FCR_RXTRIGLVL_8, NULL, ledstripe_refill, NULL);
+	usart_init_sync_master(LEDSTRIPE_USART_IDX, 8, 3200000, 16, USART_FCR_RXTRIGLVL_8, NULL, NULL/*ledstripe_refill*/, NULL);
 }
 
 void ledstripe_off() {
@@ -256,7 +256,9 @@ void ledstripe_sendRGB(const uint8_t* rgb, const uint16_t* reorder) {
 	}
 
 	ledstripe_idx = 0;
-	ledstripe_refill(LEDSTRIPE_USART_IDX);
+	usart_write_sync(LEDSTRIPE_USART_IDX, ledstripe_buffer, ledstripe_buffer_len);
+
+//	ledstripe_refill(LEDSTRIPE_USART_IDX);
 }
 
 void wifi_on() {

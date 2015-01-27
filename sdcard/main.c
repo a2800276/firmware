@@ -1,6 +1,5 @@
 
 #include "everykey/everykey.h"
-//#include "sdmmc.h"
 
 uint8_t status = 1;
 
@@ -57,32 +56,17 @@ int main(void) {
 	//fillHalfBuffer();
 
 	audio_on();
-	audio_play(2, 16, /*44100*/48000, getNextSample);
+	audio_play(2, 16, 44100, getNextSample);
 
 	while (1) {
-	}
-
-
-/*
-	uint32_t result = Chip_SDMMC_Acquire(&sdcardinfo);
-	write_pin(LED2_PIN, false);
-	if (!result) progfault(PERIPHERAL_FAILURE);
-
-
-	uint32_t numSectors = Chip_SDMMC_GetDeviceBlocks();
-
-	uint32_t read = Chip_SDMMC_ReadBlocks((void*)readBuffer, 0, 1);
-	if(read == 0) progfault(PERIPHERAL_FAILURE);
-	write_pin(LED3_PIN, true);
-*/
-}
-
-void systick() {
-		write_pin(LED1_PIN, playbackIdx > HALF_BUFFER_SIZE);
-		write_pin(LED2_PIN, playingHalfBuffer);
 		if (lastFilledHalfBuffer == playingHalfBuffer) {
 			fillHalfBuffer();
 		}
+	}
+
+}
+
+void systick() {
 
 
 	static uint32_t counter = 0;

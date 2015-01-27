@@ -21,9 +21,11 @@
 
 #define GAME_MAX_SEQUENCE_LENGTH 500
 #define GAME_MAX_LISTEN_TICKS 6000	/* 1 min */
-#define GAME_DEFAULT_TONE_TICKS 30
-#define GAME_DEFAULT_SAY_TICKS 40
-#define GAME_LENGTH_FINISHED_TICKS 60
+#define GAME_DEFAULT_TONE_TICKS 50
+#define GAME_DEFAULT_SAY_TICKS 70
+#define GAME_LENGTH_FINISHED_FEEDBACK_TICKS 70
+#define GAME_LENGTH_FINISHED_CONTINUE_TICKS 180
+
 
 // map the LED stripe order to indexes in a 10x9 matrix 
 const uint16_t stripe_led_lookup[] = {
@@ -37,6 +39,60 @@ const uint16_t stripe_led_lookup[] = {
 
 uint8_t rgb[3*MATRIX_WIDTH*MATRIX_HEIGHT];
 uint8_t led_buffer[LEDSTRIPE_BUFFER_CAPACITY(NUM_LEDS)];
+
+// ----------------------
+// --- audio settings ---
+// ----------------------
+
+#define AUDIO_BUFFER_SIZE 2048
+#define HALF_AUDIO_BUFFER_SIZE 1024
+#define AUDIO_BLOCKS_PER_S 86
+#define AUDIO_BLOCKS_OFFSET 10
+#define AUDIO_BLOCKS_PER_FX 172
+#define AUDIO_FX_DURATION_S 1
+#define AUDIO_NUM_FX 8
+
+SD_CARD_INFO card_info;
+
+static uint32_t audio_buffer[AUDIO_BUFFER_SIZE];
+static volatile uint32_t audio_playbackIdx = 0;
+static volatile uint32_t audio_readBlockIdx = 10;
+static volatile uint32_t audio_readBlockEndIdx = 0;
+static volatile uint8_t audio_lastFilledHalfBuffer = 1;
+static volatile uint8_t audio_playingHalfBuffer = 0;
+static volatile bool audio_playing = false;
+
+void audio_tick() {
+	audio_playingHalfBuffer = audio_playbackIdx / HALF_AUDIO_BUFFER_SIZE;
+	if (audio_lastFilledHalfBuffer == audio_playingHalfBuffer) {
+		uint8_t bufferToFill = 1-audio_lastFilledHalfBuffer;
+		uint32_t* base = (&(audio_buffer[HALF_AUDIO_BUFFER_SIZE*bufferToFill]));
+		if (audio_readBlockIdx >= audio_readBlockEndIdx) {
+			audio_playing = false;
+		}
+		if (audio_playing) {
+			bool read = sd_read_blocks(base, audio_readBlockIdx, 8, &card_info, true);
+			audio_readBlockIdx+=8;
+		} else {
+			int i;
+			for (i=0; i<HALF_AUDIO_BUFFER_SIZE; i++) {
+				base[i] = 0;
+			}
+		}
+		audio_lastFilledHalfBuffer = bufferToFill;
+	}
+}
+
+void audio_play_effect(uint8_t idx) {
+	audio_playing = false;
+	audio_readBlockIdx = AUDIO_BLOCKS_PER_FX * idx + AUDIO_BLOCKS_OFFSET;
+	audio_readBlockEndIdx = audio_readBlockIdx + AUDIO_FX_DURATION_S * AUDIO_BLOCKS_PER_S;
+	audio_playing = true;
+}
+
+void audio_stop_effect() {
+	audio_playing = false;
+}
 
 //NRF reading - should go to sparrow ****
 //NRF command format: 0x42 <datalen> <cmd> <data>
@@ -62,8 +118,13 @@ typedef enum {
 	GAME_TONE_BLUE   = 4,
 	GAME_TONE_PURPLE = 5,
 	GAME_TONE_WON    = 6,
-	GAME_TONE_LOST   = 7
+	GAME_TONE_LOST   = 7,
+	GAME_TONE_GOOD   = 8
 } GAME_TONE;
+
+const uint8_t game_tone_durations[] = {
+	50,50,50,50,50,50,100,100,100
+};
 
 typedef enum {
 	NRF_USER_KEY_PRESSED = 1,	//data = user key (uint8)
@@ -100,38 +161,70 @@ uint32_t rand() {
 GAME_STATE game_state = GAME_STATE_NOGAME;
 uint32_t game_total_ticks = 0;
 uint16_t game_state_ticks = 0;       //time in game state
-uint16_t game_playing_ticks = 0;     //time in tone play or 0 if not playing
-uint16_t game_tone_ticks = 0;        //duration of tone
+uint16_t tone_playing_ticks = 0;     //time in tone play or 0 if not playing
+uint16_t tone_stop_ticks = 0;        //duration of tone
 uint16_t game_say_ticks = 60;
 uint16_t game_sequence_length = 1;   //current sequence length
 uint16_t game_sequence_idx = 0;	//position we're listening
 uint8_t game_sequence[GAME_MAX_SEQUENCE_LENGTH];
 
-
 void game_stop_tone() {
-	game_playing_ticks = 0;
+	tone_playing_ticks = 0;
 	anim_fill_color(0,0,0);
+	audio_stop_effect();
 }
 
+#define BBB 0x00,0x00,0x00
+#define GGG 0x00,0xff,0x00
+#define RRR 0xff,0x00,0x00
+
+const uint8_t smile_matrix[] = {
+	GGG,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,GGG,
+	BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,
+	BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,
+	BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,
+	BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,
+	BBB,GGG,BBB,BBB,BBB,BBB,BBB,BBB,GGG,BBB,
+	BBB,BBB,GGG,BBB,BBB,BBB,BBB,GGG,BBB,BBB,
+	BBB,BBB,BBB,GGG,BBB,BBB,GGG,BBB,BBB,BBB,
+	BBB,BBB,BBB,BBB,GGG,GGG,BBB,BBB,BBB,BBB,
+};
+
+const uint8_t sad_face_matrix[] = {
+	RRR,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,RRR,
+	BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,
+	BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,
+	BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,
+	BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,BBB,
+	BBB,BBB,BBB,BBB,RRR,RRR,BBB,BBB,BBB,BBB,
+	BBB,BBB,BBB,RRR,BBB,BBB,RRR,BBB,BBB,BBB,
+	BBB,BBB,RRR,BBB,BBB,BBB,BBB,RRR,BBB,BBB,
+	BBB,RRR,BBB,BBB,BBB,BBB,BBB,BBB,RRR,BBB,
+};
+
 void game_play_tone(GAME_TONE tone) {
-	if (game_playing_ticks) {
+	if (tone_playing_ticks) {
 		game_stop_tone();
 	}
-	uint8_t r,g,b;
 	uint8_t on = 100;
 	switch (tone) {
-		case GAME_TONE_RED:    r= on; g=  0; b=  0; break;
-		case GAME_TONE_YELLOW: r= on; g= on; b=  0; break;
-		case GAME_TONE_GREEN:  r=  0; g= on; b=  0; break;
-		case GAME_TONE_CYAN:   r=  0; g= on; b= on; break;
-		case GAME_TONE_BLUE:   r=  0; g=  0; b= on; break;
-		case GAME_TONE_PURPLE: r= on; g=  0; b= on; break;
-		default:               r=100; g=100; b=100; break;
+		case GAME_TONE_RED:    anim_fill_color(on, 0, 0); break;
+		case GAME_TONE_YELLOW: anim_fill_color(on,on, 0); break;
+		case GAME_TONE_GREEN:  anim_fill_color( 0,on, 0); break;
+		case GAME_TONE_CYAN:   anim_fill_color( 0,on,on); break;
+		case GAME_TONE_BLUE:   anim_fill_color( 0, 0,on); break;
+		case GAME_TONE_PURPLE: anim_fill_color(on, 0,on); break;
+		case GAME_TONE_WON:    anim_set_matrix(smile_matrix); break;
+		case GAME_TONE_LOST:   anim_set_matrix(sad_face_matrix); break;
+		case GAME_TONE_GOOD:   anim_set_matrix(smile_matrix); break;
+		default:               anim_fill_color(on,on,on); break;
 
 	}
-	game_playing_ticks = 1;
-	anim_fill_color(r,g,b);
-	game_tone_ticks = GAME_DEFAULT_TONE_TICKS;
+	tone_playing_ticks = 1;
+	if (tone < AUDIO_NUM_FX) {
+		audio_play_effect(tone);
+	}
+	tone_stop_ticks = game_tone_durations[tone];
 }
 
 void game_won() {
@@ -217,9 +310,9 @@ void game_handle_user_key(USER_KEY key) {
 void game_tick() {
 	game_total_ticks++;
 	game_state_ticks++;
-	if (game_playing_ticks) {
-		game_playing_ticks++;
-		if (game_playing_ticks >= game_tone_ticks) {
+	if (tone_playing_ticks) {
+		tone_playing_ticks++;
+		if (tone_playing_ticks >= tone_stop_ticks) {
 			game_stop_tone();
 		}
 	}
@@ -242,7 +335,10 @@ void game_tick() {
 			}
 			break;
 		case GAME_STATE_LENGTH_FINISHED:
-			if (game_state_ticks > GAME_LENGTH_FINISHED_TICKS) {
+			if (game_state_ticks == GAME_LENGTH_FINISHED_FEEDBACK_TICKS) {
+				game_play_tone(GAME_TONE_GOOD);
+			}
+			if (game_state_ticks > GAME_LENGTH_FINISHED_CONTINUE_TICKS) {
 				game_next_length();
 			}
 
@@ -318,31 +414,64 @@ void nrf_comm_err(uint8_t uart_idx, uint8_t reason) {
 	nrf_receive_state = NRF_WAITING_FOR_MAGIC;
 }
 
+
+uint32_t getNextSample() {
+	audio_playbackIdx = (audio_playbackIdx+1) % AUDIO_BUFFER_SIZE;
+	return audio_buffer[audio_playbackIdx];
+}
+
+
 void main(void) {
 	sparrow_init();
 
+	//init LED matrix
 	anim_init(MATRIX_WIDTH, MATRIX_HEIGHT, rgb);
-
 	anim_fill_color(0,0,0);
-
 	ledstripe_on(NUM_LEDS, led_buffer);
 
+	//init nordic communication
 	set_digital_input(NRF0_3_PIN, true, false, true);
-
 	usart_configure_pin(NRF_UART_RX_GROUP, NRF_UART_RX_IDX, NRF_UART_RX_MODE, true, false);
 	usart_configure_pin(NRF_UART_TX_GROUP, NRF_UART_TX_IDX, NRF_UART_TX_MODE, false, false);
-
 	//TODO: clock should be at 115200, but finding clock dividers doesnt seem to work
 	usart_init_async(NRF_UART_IDX, 8, 115200, UART_PARITY_NONE, false, 128,
 					USART_FCR_RXTRIGLVL_8, nrf_data_received, NULL,
 					nrf_comm_err);
 
-	systick_start(SYSTICK_10MS*3);
+	//init sd card
+	sd_init();
+	while (!sd_card_detected()) {}
+	sd_set_power(true);
+	bool success = sd_init_card(&card_info);
+
+	audio_readBlockIdx = 10;
+
+	audio_on();
+	audio_play(1, 16, 44100, getNextSample);
+
+	systick_start(SYSTICK_10MS);
+
+	ledstripe_sendRGB(rgb,stripe_led_lookup);
+
 }
 
 void systick() {
-	game_tick();
-	anim_tick();
-	ledstripe_sendRGB(rgb,stripe_led_lookup);
-	write_pin(LED3_PIN, read_pin(NRF0_3_PIN));
+	static uint32_t dispatch = 0;
+	dispatch++;
+	if ((dispatch % 5) == 0) {
+		ledstripe_sendRGB(rgb,stripe_led_lookup);
+	} else {
+		audio_tick();
+		game_tick();
+//		anim_tick();
+	}
+	
+	// switch (dispatch % 3) {
+	// 	case 0:
+	// 		break;
+	// 	case 1:
+	// 		break;
+	// 	case 2:
+	// 		break;
+	// }
 }
