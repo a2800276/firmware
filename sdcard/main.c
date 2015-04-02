@@ -20,18 +20,17 @@ static uint32_t buffer[BUFFER_SIZE];
 static volatile uint32_t playbackIdx = 0;
 static volatile uint32_t readBlockIdx = 10;
 static volatile uint8_t lastFilledHalfBuffer = 1;
-static volatile uint8_t playingHalfBuffer = 0;
 
 void fillHalfBuffer() {
 	lastFilledHalfBuffer = 1-lastFilledHalfBuffer;
 	uint32_t* base = (&(buffer[HALF_BUFFER_SIZE*lastFilledHalfBuffer]));
-	bool read = sd_read_blocks(base, readBlockIdx, 8, &card_info);
+	bool read = sd_read_blocks(base, readBlockIdx, 8, &card_info, false);
 	readBlockIdx+=8;
+	write_pin(LED2_PIN,!read_pin(LED2_PIN));
 }
 
 uint32_t getNextSample() {
 	playbackIdx = (playbackIdx+1) % BUFFER_SIZE;
-	playingHalfBuffer = playbackIdx / HALF_BUFFER_SIZE;
 	return buffer[playbackIdx];
 	// static uint32_t counter = 0;
 	// counter++;
@@ -51,14 +50,15 @@ int main(void) {
 	sd_set_power(true);
 
 	bool success = sd_init_card(&card_info);
-
-	//fillHalfBuffer();
-	//fillHalfBuffer();
+	status = success ? 3 : 2;
+	fillHalfBuffer();
+	fillHalfBuffer();
 
 	audio_on();
 	audio_play(2, 16, 44100, getNextSample);
 
 	while (1) {
+		uint8_t playingHalfBuffer = playbackIdx / HALF_BUFFER_SIZE;
 		if (lastFilledHalfBuffer == playingHalfBuffer) {
 			fillHalfBuffer();
 		}

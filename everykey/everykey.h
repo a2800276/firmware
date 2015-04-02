@@ -22,6 +22,7 @@
 #include "mcu/romusb.h"
 #include "mcu/usb.h"
 #include "mcu/usart.h"
+#include "mcu/adc.h"
 
 #include "utils/utils.h"
 #include "utils/endian.h"

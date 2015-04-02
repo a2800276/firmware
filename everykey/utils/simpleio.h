@@ -6,9 +6,9 @@
 /* A pin_id represents package pin name (P<major>_<minor>), the scu function, the GPIO port and index in one value.
 33222222 22221111 11111100 00000000
 10987654 32109876 54321098 76543210
-0<F><PT> 000<IDX> 000<MAJ> 000<MIN>
+< F><PT> 000<IDX> 000<MAJ> 000<MIN>
 
-F: SCU function
+F: SCU function (8=analog)
 PT: GPIO Port
 IDX: GPIO index within port
 MAJ: Pin major (first number).
@@ -17,7 +17,7 @@ MIN: Pin minor
 A pin_id may be used to identify other pins and functions than GPIO. In this case, IDX should be ff. MAJ 10 = clock pins.
 */
 
-#define PINID_SCU_FUNC(pinid) (((pinid)>>28)&0x07)
+#define PINID_SCU_FUNC(pinid) (((pinid)>>28)&0x0f)
 #define PINID_GPIO_PORT(pinid) (((pinid)>>24)&0x0f)
 #define PINID_GPIO_PIN(pinid) (((pinid)>>16)&0x1f)
 #define PINID_SCU_GROUP(pinid) (((pinid)>>8)&0x1f)
@@ -112,6 +112,16 @@ typedef uint32_t pin_id;
 #define P9_5_AS_GPIO_5_18  0x45120905
 #define P9_6_AS_GPIO_4_11  0x040b0906
 // PF_4 has no GPIO function
+
+/* ADC inputs
+#define P4_3_AS_ADC_0_0    0x80000403
+#define P1_4_AS_ADC_0_1    0x80010104
+#define PF_8_AS_ADC_0_2    0x80020f08
+#define P7_5_AS_ADC_0_3    0x80030705
+#define P7_4_AS_ADC_0_4    0x80040704
+#define PF_10_AS_ADC_0_5   0x80050f0a
+#define PB_6_AS_ADC_0_6    0x80060b06
+*/
 
 #ifdef __cplusplus
 extern "C" {

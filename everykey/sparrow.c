@@ -18,20 +18,30 @@ void sparrow_init() {
 
 	//First: Turn off external power blocks
 	set_digital_output(BOOST_5V_EN_PIN);
+	write_pin(BOOST_5V_EN_PIN, false);
+
 	set_digital_output(PORT_5V_EN_PIN);
+	write_pin(PORT_5V_EN_PIN, false);
+
+//TODO: Disable 5V USB generation (USB0_PPWR, P2_0)
+
+//TODO: Set fault input interrupt handlers to shutdown peripheral and react accordingly
+//E.g. USB_PWR_FAULT_HANDLER (P2_1)
+
+	set_digital_output(AUDIO_POWER_EN_PIN);
+	write_pin(AUDIO_POWER_EN_PIN, false);
+
+	set_digital_output(WIFI_POWER_EN_PIN );
+	write_pin(WIFI_POWER_EN_PIN, false );
+
 
 //TODO: Why does this pin not work? For now, the input pullup keeps the eth domain powered up permamently.
 //Setting OUT and writing this bit caused the device to hang. Might be correct now, check again.
 //	set_digital_output(ETH_POWER_EN_PIN);
-
-	set_digital_output(AUDIO_POWER_EN_PIN);
-	set_digital_output(WIFI_POWER_EN_PIN );
-	set_digital_output(AUDIO_NRESET);
-	write_pin(BOOST_5V_EN_PIN, false);
-	write_pin(PORT_5V_EN_PIN, false);
 	write_pin(ETH_POWER_EN_PIN, false);
-	write_pin(AUDIO_POWER_EN_PIN, false);
-	write_pin(WIFI_POWER_EN_PIN, false );
+
+	//Set all ext devices to !reset
+	set_digital_output(AUDIO_NRESET);
 	write_pin(AUDIO_NRESET, false);
 
 	//init base clock to xtal, main clock, via pll1
