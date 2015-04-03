@@ -83,7 +83,7 @@ void usb0_handler(void) {
 }
 
 void main(void) {
-	sparrow_init();
+	dkl_init();
 
 
 	ROM_ERR ret = USB_ROM_API->hw->Init(&usbHandle, &coreDescs, &usbInit);

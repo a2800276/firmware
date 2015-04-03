@@ -1,7 +1,7 @@
 #include "everykey/everykey.h"
 
 void main(void) {
-	sparrow_init();
+	dkl_init();
 
 	while (1) {
 		delay(5000000);

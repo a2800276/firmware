@@ -6,7 +6,7 @@
 #include "../utils/progfault.h"
 
 //jsut for debug
-#include "../sparrow.h"
+#include "../dkl.h"
 #include "../utils/simpleio.h"
 #include "../utils/utils.h"
 

@@ -1,8 +1,8 @@
-/* High level API for the sparrow board. This abstraction sits on top of the standard library. Low level defines
+/* High level API for the ^^dkl board. This abstraction sits on top of the standard library. Low level defines
 required by the generic library functions should go to board.h */
 
-#ifndef _SPARROW_
-#define _SPARROW_
+#ifndef _DKL_
+#define _DKL_
 
 #include "core/types.h"
 #include "utils/simpleio.h"
@@ -147,7 +147,7 @@ required by the generic library functions should go to board.h */
 #define ETH_NINT_PIN P3_1_AS_GPIO_5_8
 #define ETH_NRST_PIN P9_5_AS_GPIO_5_18
 
-// Sparrow UART/USART pins
+// DKL UART/USART pins
 
 #define USART0_TXD_GROUP  6
 #define USART0_TXD_IDX    4
@@ -202,7 +202,7 @@ required by the generic library functions should go to board.h */
 #define USART3_BAUD_MODE  6
 
 
-#define SPARROW_I2S 0
+#define DKL_I2S 0
 
 
 // SPI
@@ -248,12 +248,12 @@ extern "C" {
 #endif
 
 // -------------------
-// --- Sparrow API ---
+// --- DKL API ---
 // -------------------
 
 /** reset all, configure pins, disable all peripherals
 Should be called once after startup or reset-like wakeup */
-void sparrow_init();
+void dkl_init();
 
 // ----------------------------------------
 // --- AUDIO: I2S, TLV320AIC3100, Board ---

@@ -1,5 +1,5 @@
 #include "cc3000.h"
-#include "../sparrow.h"
+#include "../dkl.h"
 #include "../mcu/scu.h"
 #include "../mcu/nvic.h"
 

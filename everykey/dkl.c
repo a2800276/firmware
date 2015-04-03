@@ -1,7 +1,7 @@
-/* High level API for the sparrow board */
+/* High level API for the ^^dkl board */
 
 #include "board.h"
-#include "sparrow.h"
+#include "dkl.h"
 #include "mcu/clocks.h"
 #include "mcu/i2c.h"
 #include "mcu/i2s.h"
@@ -14,7 +14,7 @@
 #define TLV_I2C_BUS 0
 
 
-void sparrow_init() {
+void dkl_init() {
 
 	//First: Turn off external power blocks
 	set_digital_output(BOOST_5V_EN_PIN);
@@ -134,7 +134,7 @@ void audio_on() {
 	audio_off();	//Turn off to make sure we do a proper reset
 	delay(1000000);
 
-	i2s_init(SPARROW_I2S);
+	i2s_init(DKL_I2S);
 	write_pin(AUDIO_POWER_EN_PIN, true);
 	delay(1000000);		//TLV320AIC3100 spec: Reset low for at least 10ns
 	write_pin(AUDIO_NRESET, true);
@@ -144,11 +144,11 @@ void audio_on() {
 void audio_off() {
 	write_pin(AUDIO_POWER_EN_PIN, false);
 	write_pin(AUDIO_NRESET, false);
-	i2s_shutdown(SPARROW_I2S);
+	i2s_shutdown(DKL_I2S);
 }
 
 void audio_play(uint8_t numChannels, uint8_t bitsPerSample, uint32_t sampleRate, I2S_PLAY_SAMPLE_CALLBACK cb) {
-	i2s_start_play(SPARROW_I2S, numChannels, bitsPerSample, sampleRate, cb);
+	i2s_start_play(DKL_I2S, numChannels, bitsPerSample, sampleRate, cb);
   	tlv_configure(TLV_I2C_BUS);
 
 	// tlv_set_clock_input(TLV_I2C_BUS);

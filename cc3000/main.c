@@ -6,7 +6,7 @@ void DEBUG(bool on) {	// THIS SHOULD GO LATER ****************
 }
 
 void main(void) {
-	sparrow_init();
+	dkl_init();
 
 	write_pin(LED1_PIN, false);
 	wifi_on();

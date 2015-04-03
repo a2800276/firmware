@@ -94,7 +94,7 @@ void audio_stop_effect() {
 	audio_playing = false;
 }
 
-//NRF reading - should go to sparrow ****
+//NRF reading - should go to ^^dkl ****
 //NRF command format: 0x42 <datalen> <cmd> <data>
 //datalen includes cmd
 
@@ -422,7 +422,7 @@ uint32_t getNextSample() {
 
 
 void main(void) {
-	sparrow_init();
+	dkl_init();
 
 	//init LED matrix
 	anim_init(MATRIX_WIDTH, MATRIX_HEIGHT, rgb);

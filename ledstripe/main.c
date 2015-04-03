@@ -1,7 +1,7 @@
 #include "everykey/everykey.h"
 
 void main(void) {
-	sparrow_init();
+	dkl_init();
 	set_digital_output(LED1_PIN);
 	set_digital_output(LED2_PIN);
 	write_pin(LED1_PIN, false);

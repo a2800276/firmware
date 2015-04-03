@@ -1,7 +1,7 @@
 #include "everykey/everykey.h"
 #include "everykey/peripherals/lan8720a.h"
 void main(void) {
-	sparrow_init();
+	dkl_init();
 	write_pin(LED1_PIN, true);
 	ethernet_on();
 	write_pin(LED1_PIN, false);

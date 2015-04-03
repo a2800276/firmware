@@ -36,7 +36,7 @@ const uint16_t stripe_led_lookup[] = {
 uint8_t rgb[3*MATRIX_WIDTH*MATRIX_HEIGHT];
 uint8_t led_buffer[LEDSTRIPE_BUFFER_CAPACITY(NUM_LEDS)];
 
-//NRF reading - should go to sparrow ****
+//NRF reading - should go to ^^dkl ****
 //NRF command format: 0x42 <datalen> <cmd> <data>
 //datalen includes cmd
 
@@ -118,7 +118,7 @@ void nrf_comm_err(uint8_t uart_idx, uint8_t reason) {
 }
 
 void main(void) {
-	sparrow_init();
+	dkl_init();
 
 	anim_init(MATRIX_WIDTH, MATRIX_HEIGHT, rgb);
 

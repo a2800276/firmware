@@ -36,7 +36,7 @@ void Blinker::blink() {
 Blinker blinker1(LED1_PIN);
 
 int main(void) {
-	sparrow_init();
+	dkl_init();
 	Blinker blinker2(LED2_PIN);
 
 	while (1) {

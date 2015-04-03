@@ -41,7 +41,7 @@ uint32_t getNextSample() {
 int main(void) {
 
 
-	sparrow_init();
+	dkl_init();
 	systick_start(SYSTICK_10MS);
 
 	sd_init();

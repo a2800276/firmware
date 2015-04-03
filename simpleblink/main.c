@@ -1,7 +1,7 @@
 #include "everykey/everykey.h"
 
 void main(void) {
-	sparrow_init();
+	dkl_init();
 	systick_start(SYSTICK_10MS);
 }
 

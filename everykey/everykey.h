@@ -29,6 +29,6 @@
 #include "utils/simpleio.h"
 #include "utils/progfault.h"
 
-#include "sparrow.h"
+#include "dkl.h"
 
 #endif

@@ -6,7 +6,7 @@
 #define NRF0_3_PIN P5_4_AS_GPIO_2_13	/*CTS*/
 
 void main(void) {
-	sparrow_init();
+	dkl_init();
 	set_digital_input(NRF0_0_PIN, true, false, true);
 	set_digital_input(NRF0_1_PIN, true, false, true);
 	set_digital_input(NRF0_3_PIN, true, false, true);
